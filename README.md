@@ -39,7 +39,7 @@
 - **Effets dynamiques** : `TweenService`, `Lighting`, `SoundService`
 - **Interactions** : `ProximityPrompt`, `ClickDetector`, ou système custom
 - **Narration** : `ModuleScript` pour stocker les logs, dialogues, événements
-<div style="margin: auto;">
+<div style="margin: auto; text-align: center">
 
 ### State Machine
 
