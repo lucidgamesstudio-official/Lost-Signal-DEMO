@@ -57,4 +57,9 @@ stateDiagram-v2
     C --> A
 ```
 </div>
---- <br>*Credits to:* <br><a href="https://obsidian.md/" style="text-decoration: none; color: gold; margin-left: 10px;"> Obsidian </a><br><a href="https://obsidian.md/" style="text-decoration: none; color: gold; margin-left: 10px;"> Mermaid </a>
+
+--- 
+##### *Credits to:* 
+<a href="https://obsidian.md/" style="text-decoration: none; color: gold; margin-left: 10px;"> Obsidian </a> \
+<a href="https://obsidian.md/" style="text-decoration: none; color: gold; margin-left: 10px;"> Mermaid </a>
+
