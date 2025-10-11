@@ -21,14 +21,15 @@
 ## 🧱 **Structure technique du projet**
 
 
-| Module / Dossier     | Contenu                                           |
-| -------------------- | ------------------------------------------------- |
-| `src/Client/Player/` | Scripts de mouvement, sprint, lampe, UI           |
-| `src/Client/UI/`     | Barre de stamina, prompts, joural/logs            |
-| `src/Shared/Config/` | Paramètres (vitesse, stamina max, cooldowns, etc) |
-| `src/Shared/Utils`   | Scripts utilitaires partagés                      |
-| `src/Server/Events/` | Apparitions, triggers, scripts de fin             |
-| `tests/`             | Tests unitaires                                   |
+| Module / Dossier              | Contenu                                           |
+| ----------------------------- | ------------------------------------------------- |
+| `src/Client/Player/`          | Scripts de mouvement, sprint, lampe, UI           |
+| src/Client/Player/Inputs.luau | Module de mouvemevent                             |
+| `src/Client/UI/`              | Barre de stamina, prompts, joural/logs            |
+| `src/Shared/Config/`          | Paramètres (vitesse, stamina max, cooldowns, etc) |
+| `src/Shared/Utils`            | Scripts utilitaires partagés                      |
+| `src/Server/Events/`          | Apparitions, triggers, scripts de fin             |
+| `tests/`                      | Tests unitaires                                   |
 
 
 ## 🧠 **À prévoir côté scripting**
@@ -39,6 +40,18 @@
 - **Interactions** : `ProximityPrompt`, `ClickDetector`, ou système custom
 - **Narration** : `ModuleScript` pour stocker les logs, dialogues, événements
 
+```mermaid
+stateDiagram-v2
+    [*] --> Idle
+    [*] --> Action: MouseLeftButton
+
+    Idle --> Walk
+    Walk --> Idle
+    Walk --> Sprint: Shift
+    Sprint --> Idle
+```
+
 ---
-*Credits to:*\
+*Credits to:*
 <a href="https://obsidian.md/" style="text-decoration: none; color: gold; margin-left: 10px;"> Obsidian </a>
+<a href="https://obsidian.md/" style="text-decoration: none; color: gold; margin-left: 10px;"> Mermaid </a>
