@@ -39,19 +39,22 @@
 - **Effets dynamiques** : `TweenService`, `Lighting`, `SoundService`
 - **Interactions** : `ProximityPrompt`, `ClickDetector`, ou système custom
 - **Narration** : `ModuleScript` pour stocker les logs, dialogues, événements
+<div style="margin: auto;">
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Idle
-    [*] --> Action: MouseLeftButton
-
-    Idle --> Walk
-    Walk --> Idle
-    Walk --> Sprint: Shift
-    Sprint --> Idle
+	A : Idle
+	B : Walk
+	C : Sprint
+	D : Action
+	
+    [*] --> A
+    [*] --> D: MouseLeftButton
+	
+    A --> B: WASD
+    B --> A
+    B --> C: Shift
+    C --> A
 ```
-
----
-*Credits to:*
-<a href="https://obsidian.md/" style="text-decoration: none; color: gold; margin-left: 10px;"> Obsidian </a>
-<a href="https://obsidian.md/" style="text-decoration: none; color: gold; margin-left: 10px;"> Mermaid </a>
+</div>
+--- <br>*Credits to:* <br><a href="https://obsidian.md/" style="text-decoration: none; color: gold; margin-left: 10px;"> Obsidian </a><br><a href="https://obsidian.md/" style="text-decoration: none; color: gold; margin-left: 10px;"> Mermaid </a>
