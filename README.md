@@ -41,6 +41,8 @@
 - **Narration** : `ModuleScript` pour stocker les logs, dialogues, événements
 <div style="margin: auto;">
 
+### State Machine
+
 ```mermaid
 stateDiagram-v2
 	A : Idle
