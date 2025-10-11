@@ -1,8 +1,6 @@
-# LOST SIGNAL [DEMO]
+# 🧩 Fiche technique — _Lost Signal DEMO_
 
-## 🧩 Fiche technique — _Lost Signal DEMO_
-
-### 🎮 **Composantes de gameplay**
+## 🎮 **Composantes de gameplay**
 
 
 | Composante          | Description                                                      | Implémentation                                 |
@@ -20,7 +18,7 @@
 | Fin de partie       | Déclenchement d'une fin (sortie, piégeage, révélation)           | Trigger + UI narrative                         |
 
 
-### 🧱 **Structure technique du projet**
+## 🧱 **Structure technique du projet**
 
 
 | Module / Dossier     | Contenu                                           |
@@ -33,10 +31,14 @@
 | `tests/`             | Tests unitaires                                   |
 
 
-### 🧠 **À prévoir côté scripting**
+## 🧠 **À prévoir côté scripting**
 
 - **Gestion des inputs** : `UserInputService` pour `Shift`, `Ctrl`, `F`, `E`
 - **État du joueur** : `isCrouching`, `isSprinting`, `stamina`, `hasFlashlight`
 - **Effets dynamiques** : `TweenService`, `Lighting`, `SoundService`
 - **Interactions** : `ProximityPrompt`, `ClickDetector`, ou système custom
 - **Narration** : `ModuleScript` pour stocker les logs, dialogues, événements
+
+---
+*Credits to:*\
+<a href="https://obsidian.md/" style="text-decoration: none; color: gold; margin-left: 10px;"> Obsidian </a>
