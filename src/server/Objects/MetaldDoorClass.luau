@@ -13,6 +13,7 @@ local Utility = require(ReplicatedStorage.Shared.Utility)
 export type MetalDoorType = {
     -- Public properties
 	Door: Model,
+	Clicker: BasePart,
 	PrimaryPart: BasePart,
 	ProximityPrompt: ProximityPrompt,
 	OpenSound: Sound,
@@ -81,6 +82,11 @@ function MetalDoor:_animate(targetCFrame: CFrame, duration: number, onFinish: ()
 end
 
 function MetalDoor.Init(self: MetalDoorType)
+	self.Clicker = self.Door:FindFirstChild("Clicker") :: BasePart
+	if not self.Clicker then
+		Utility.Error("No Clicker found in: " .. self.Door.Name, script.Name)
+		return
+	end
 	self.PrimaryPart = self.Door.PrimaryPart :: BasePart
 	if not self.PrimaryPart then
 		Utility.Error("No primaryPart found in: " .. self.Door.Name, script.Name)
@@ -103,7 +109,7 @@ function MetalDoor.Init(self: MetalDoorType)
 		return
 	end
 
-	self.ProximityPrompt.Parent = self.Door
+	self.ProximityPrompt.Parent = self.Clicker
 	self.OpenSound.Parent = self.Door
 	self.CloseSound.Parent = self.Door
 
@@ -114,6 +120,7 @@ function MetalDoor.Init(self: MetalDoorType)
 		else
 			self.OpenSound:Play()
 		end
+		self.ProximityPrompt.ActionText = self.open and "Open" or "Close"
 
 		local goalCFrame = self.open and self.originCFrame or self.openCFrame
 		self:_animate(goalCFrame, 1.2, function()
