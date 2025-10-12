@@ -101,3 +101,5 @@ table.insert(connections, actionConn)
 
 -- Send connections to player
 SEND_CONN_REMOTE:FireServer(connections)
+
+return Inputs
