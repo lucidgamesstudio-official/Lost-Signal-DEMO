@@ -7,6 +7,9 @@ local Players = game:GetService("Players")
 local PlayerManager = require(script.Player.PlayerManager)
 local InitObjects = require(script.Objects.InitObjects)
 
+-- Objects
+print(InitObjects)
+
 -- Connections
 local playerConnect: RBXScriptConnection?
 local playerDisconnect: RBXScriptConnection?
