@@ -53,7 +53,7 @@ local connections: { RBXScriptConnection | thread} = {}
 --=========================================
 
 -- SPRINT
-local sprint = InputActions.GetAction(Inputs.CONTEXTS.NORMAL, Inputs.ACTIONS.SPRINT)
+local sprint: InputActions.Action = InputActions.GetAction(Inputs.CONTEXTS.NORMAL, Inputs.ACTIONS.SPRINT)
 sprint.KeyboardBinding.KeyCode = Enum.KeyCode.LeftShift
 
 local startSprintConn: RBXScriptConnection = sprint.Pressed:Connect(function ()
@@ -71,7 +71,7 @@ end)
 table.insert(connections, stopSprintConn)
 
 -- CROUCH
-local crouch = InputActions.GetAction(Inputs.CONTEXTS.NORMAL, Inputs.ACTIONS.CROUCH)
+local crouch: InputActions.Action = InputActions.GetAction(Inputs.CONTEXTS.NORMAL, Inputs.ACTIONS.CROUCH)
 crouch.KeyboardBinding.KeyCode = Enum.KeyCode.C
 
 local startCrouchConn: RBXScriptConnection = crouch.Pressed:Connect(function ()
@@ -89,7 +89,7 @@ end)
 table.insert(connections, stopCrouchConn)
 
 -- ACTION
-local action = InputActions.GetAction(Inputs.CONTEXTS.NORMAL, Inputs.ACTIONS.ACTION)
+local action: InputActions.Action = InputActions.GetAction(Inputs.CONTEXTS.NORMAL, Inputs.ACTIONS.ACTION)
 action.KeyboardBinding.KeyCode = Enum.KeyCode.MouseLeftButton
 
 local actionConn: RBXScriptConnection = crouch.Pressed:Connect(function ()
