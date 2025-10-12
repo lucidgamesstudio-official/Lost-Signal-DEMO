@@ -2,7 +2,6 @@
 
 local module = {}
 
-
 function module:CreateBeam(Part1, Part2, Conf)
 	local fromAttachment = Instance.new("Attachment")
 	fromAttachment.Name = "BeamFrom"
@@ -16,9 +15,9 @@ function module:CreateBeam(Part1, Part2, Conf)
 	beam.Attachment0 = fromAttachment
 	beam.Attachment1 = toAttachment
 	beam.Width0 = Conf.Beam.BeamWidth.Value
-	beam.Width1 =  Conf.Beam.BeamWidth.Value
+	beam.Width1 = Conf.Beam.BeamWidth.Value
 	beam.Texture = string.len(Conf.Beam.BeamTexture.Value) > 3 and Conf.Beam.BeamTexture.Value or ""
-	beam.Color = ColorSequence.new( Conf.Beam.BeamColor.Value)
+	beam.Color = ColorSequence.new(Conf.Beam.BeamColor.Value)
 	beam.Transparency = NumberSequence.new(Conf.Beam.BeamTransparency.Value)
 	beam.FaceCamera = true
 	beam.Name = "PromptBeam"
@@ -27,12 +26,18 @@ end
 
 function module:DestroyBeam(Part1, Part2)
 	local beam = Part1:FindFirstChild("PromptBeam")
-	if beam then beam:Destroy() end
+	if beam then
+		beam:Destroy()
+	end
 
 	local fromAttachment = Part1:FindFirstChild("BeamFrom")
 	local toAttachment = Part2:FindFirstChild("BeamTo")
-	if fromAttachment then fromAttachment:Destroy() end
-	if toAttachment then toAttachment:Destroy() end
+	if fromAttachment then
+		fromAttachment:Destroy()
+	end
+	if toAttachment then
+		toAttachment:Destroy()
+	end
 end
 
 function module:CreateHighlight(Part1, Conf)
@@ -45,10 +50,11 @@ function module:CreateHighlight(Part1, Conf)
 end
 
 function module:DestroyHighlight(Part1, Conf)
-	local Highlight = Part1:FindFirstChild("PromptHighlight") and Part1.PromptHighlight or Conf.Highlight.HighlightParent.Value.PromptHighlight
-	if Highlight then Highlight:Destroy() end
+	local Highlight = Part1:FindFirstChild("PromptHighlight") and Part1.PromptHighlight
+		or Conf.Highlight.HighlightParent.Value.PromptHighlight
+	if Highlight then
+		Highlight:Destroy()
+	end
 end
-
-
 
 return module

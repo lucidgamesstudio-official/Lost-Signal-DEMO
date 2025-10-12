@@ -11,7 +11,7 @@ local Utility = require(ReplicatedStorage.Shared.Utility)
 
 -- Types
 export type MetalDoorType = {
-    -- Public properties
+	-- Public properties
 	Door: Model,
 	Clicker: BasePart,
 	PrimaryPart: BasePart,
@@ -19,20 +19,20 @@ export type MetalDoorType = {
 	OpenSound: Sound,
 	CloseSound: Sound,
 
-    -- Private properties
+	-- Private properties
 	open: boolean,
 	originCFrame: CFrame,
 	openCFrame: CFrame,
 	_animConn: RBXScriptConnection?,
-    _proxiConn: RBXScriptConnection?,
-    _allConn: { RBXScriptConnection | thread},
+	_proxiConn: RBXScriptConnection?,
+	_allConn: { RBXScriptConnection | thread },
 
-    -- Public methods
-    new: (model: Model) -> MetalDoorType,
-    Init: (self: MetalDoorType) -> (),
+	-- Public methods
+	new: (model: Model) -> MetalDoorType,
+	Init: (self: MetalDoorType) -> (),
 
-    -- Private methods
-    _animate: (self: MetalDoorType, targetCFrame: CFrame, duration: number, onFinish: () -> ()) -> (),
+	-- Private methods
+	_animate: (self: MetalDoorType, targetCFrame: CFrame, duration: number, onFinish: () -> ()) -> (),
 }
 
 --=====================================
@@ -51,12 +51,12 @@ end
 -- Constructor
 function MetalDoor.new(model: Model): MetalDoorType
 	local self = {} :: MetalDoorType
-    self = setmetatable(self, MetalDoor)
+	self = setmetatable(self, MetalDoor)
 	self.Door = model
 	self.open = false
 	self._animConn = nil
-    self._proxiConn = nil
-    self._allConn = {}
+	self._proxiConn = nil
+	self._allConn = {}
 	return self
 end
 
@@ -97,9 +97,9 @@ function MetalDoor.Init(self: MetalDoorType)
 	self.openCFrame = self.originCFrame * CFrame.Angles(0, math.rad(90), 0)
 
 	local DoorObjects: Folder = self.Door:WaitForChild("DoorObjects") :: Folder
-    if not DoorObjects then
-        Utility.Error("No DoorObjects found in: " .. self.Door.Name, script.Name)
-    end
+	if not DoorObjects then
+		Utility.Error("No DoorObjects found in: " .. self.Door.Name, script.Name)
+	end
 	self.ProximityPrompt = DoorObjects:FindFirstChildOfClass("ProximityPrompt") :: ProximityPrompt
 	self.OpenSound = DoorObjects:FindFirstChild("Open") :: Sound
 	self.CloseSound = DoorObjects:FindFirstChild("Close") :: Sound
@@ -128,7 +128,7 @@ function MetalDoor.Init(self: MetalDoorType)
 			self.ProximityPrompt.Enabled = true
 		end)
 	end)
-    table.insert(self._allConn, self._proxiConn :: RBXScriptConnection)
+	table.insert(self._allConn, self._proxiConn :: RBXScriptConnection)
 end
 
 return MetalDoor

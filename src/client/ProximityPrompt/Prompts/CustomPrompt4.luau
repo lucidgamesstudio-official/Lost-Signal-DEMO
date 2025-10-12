@@ -16,7 +16,6 @@ local CustomPrompt = ReplicatedStorage:FindFirstChild("ProxisGui"):FindFirstChil
 
 local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
-
 local function GetPromptFace(part, playerPosition, allowedFacesFolder)
 	local directionToPlayer = (playerPosition - part.Position).Unit
 	local localDir = part.CFrame:VectorToObjectSpace(directionToPlayer)

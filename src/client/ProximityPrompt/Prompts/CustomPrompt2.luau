@@ -16,7 +16,6 @@ local CustomPrompt = ReplicatedStorage:FindFirstChild("ProxisGui"):FindFirstChil
 
 local tweenInfo: TweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
-
 local function stopAllTweens(data)
 	if data.holdTween then
 		data.holdTween:Cancel()

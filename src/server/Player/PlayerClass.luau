@@ -100,10 +100,10 @@ function PlayerClass.Init(self: PlayerClassType)
 	end
 	self.HumanoidRootPart = self.character:WaitForChild("HumanoidRootPart") :: BasePart
 	if not self.HumanoidRootPart then
-		Utility.Warn("No HumanoidRootPart found in " ..self.player.Name, script.Name)
+		Utility.Warn("No HumanoidRootPart found in " .. self.player.Name, script.Name)
 		return
 	end
-	self._playerDiedConn = self.humanoid.Died:Connect(function ()
+	self._playerDiedConn = self.humanoid.Died:Connect(function()
 		if self._playerRunConn then
 			self._playerRunConn:Disconnect()
 		end

@@ -13,7 +13,6 @@ player.CharacterAdded:Connect(function(char)
 	character = char
 end)
 
-
 --  Modules
 local Utility = require(ReplicatedStorage.Shared.Utility)
 local PromptEffect = require(script.Parent.Modules.PromptEffect)
@@ -35,11 +34,16 @@ end
 
 -- Core handler
 local function handle(prompt, methodName, inputType)
-	if not isCustom(prompt) then return end
+	if not isCustom(prompt) then
+		return
+	end
 
 	local moduleName = prompt.CustomPromptConf.CustomPrompt.PromptName.Value
 	local moduleScript = PromptFolder:FindFirstChild(moduleName)
-	if not moduleScript then warn("[CustomPrompt Handler] Prompt module not found:", moduleName); return end
+	if not moduleScript then
+		warn("[CustomPrompt Handler] Prompt module not found:", moduleName)
+		return
+	end
 
 	local module = activeModules[moduleName]
 	if not module then
@@ -56,7 +60,11 @@ end
 PromptService.PromptShown:Connect(function(prompt, inputType)
 	if isCustom(prompt) then
 		if prompt.CustomPromptConf.Beam.Value then
-			PromptEffect:CreateBeam(prompt.Parent, character:FindFirstChild("HumanoidRootPart"), prompt.CustomPromptConf)
+			PromptEffect:CreateBeam(
+				prompt.Parent,
+				character:FindFirstChild("HumanoidRootPart"),
+				prompt.CustomPromptConf
+			)
 		end
 		if prompt.CustomPromptConf.Highlight.Value then
 			PromptEffect:CreateHighlight(prompt.Parent, prompt.CustomPromptConf)
@@ -91,9 +99,7 @@ PromptService.PromptButtonHoldEnded:Connect(function(prompt, inputType)
 	handle(prompt, "onHoldEnd", inputType)
 end)
 
-
 Utility.Warn("[CustomPrompt Handler] Custom Proximity Prompt System  Made by:Madrian622 ", script.Name) -- You can delete it if you want, it won't bother me
-
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "CustomPrompts"
