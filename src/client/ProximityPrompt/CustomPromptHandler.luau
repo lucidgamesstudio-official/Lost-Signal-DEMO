@@ -72,7 +72,7 @@ PromptService.PromptHidden:Connect(function(prompt, inputType)
 			PromptEffect:DestroyBeam(prompt.Parent, character:FindFirstChild("HumanoidRootPart"))
 		end
 		if prompt.CustomPromptConf.Highlight.Value then
-			PromptEffect:DestroyHighlight(prompt.Parent)
+			PromptEffect:DestroyHighlight(prompt.Parent, prompt.CustomPromptConf)
 		end
 	end
 	handle(prompt, "onHidden", inputType)
