@@ -5,6 +5,7 @@ local Players = game:GetService("Players")
 
 -- Modules
 local PlayerManager = require(script.Player.PlayerManager)
+local InitObjects = require(script.Objects.InitObjects)
 
 -- Connections
 local playerConnect: RBXScriptConnection?
