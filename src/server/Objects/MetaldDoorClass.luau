@@ -4,44 +4,80 @@ MetalDoor.__index = MetalDoor
 
 -- Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 
 -- Modules
 local Utility = require(ReplicatedStorage.Shared.Utility)
 
 -- Types
 export type MetalDoorType = {
-	-- Public properties
+    -- Public properties
 	Door: Model,
 	PrimaryPart: BasePart,
 	ProximityPrompt: ProximityPrompt,
 	OpenSound: Sound,
 	CloseSound: Sound,
 
-	-- Private properties
+    -- Private properties
 	open: boolean,
-    originCFrame: CFrame,
-    openCFrame: CFrame,
-	_proxiConn: RBXScriptConnection?,
-	_allConnections: { RBXScriptConnection | thread },
+	originCFrame: CFrame,
+	openCFrame: CFrame,
+	_animConn: RBXScriptConnection?,
+    _proxiConn: RBXScriptConnection?,
+    _allConn: { RBXScriptConnection | thread},
 
-	-- Public functions
-	new: (Model) -> MetalDoorType,
+    -- Public methods
+    new: (model: Model) -> MetalDoorType,
+    Init: (self: MetalDoorType) -> (),
+
+    -- Private methods
+    _animate: (self: MetalDoorType, targetCFrame: CFrame, duration: number, onFinish: () -> ()) -> (),
 }
+
+--=====================================
+-- HELPERS
+--=====================================
+
+-- Interpolation avec easing sine-out
+local function easeOutSine(t)
+	return math.sin(t * math.pi * 0.5)
+end
+
+--=====================================
+-- METHODS
+--=====================================
 
 -- Constructor
 function MetalDoor.new(model: Model): MetalDoorType
 	local self = {} :: MetalDoorType
-	self = setmetatable(self, MetalDoor)
-
-	-- Public
+    self = setmetatable(self, MetalDoor)
 	self.Door = model
 	self.open = false
-
-	-- Private
-	self._proxiConn = nil
-    self._allConnections = {}
-
+	self._animConn = nil
+    self._proxiConn = nil
+    self._allConn = {}
 	return self
+end
+
+function MetalDoor:_animate(targetCFrame: CFrame, duration: number, onFinish: () -> ())
+	if self._animConn then
+		self._animConn:Disconnect()
+	end
+
+	local startCFrame = self.Door:GetPivot()
+	local startTime = tick()
+
+	self._animConn = RunService.Heartbeat:Connect(function()
+		local alpha = math.clamp((tick() - startTime) / duration, 0, 1)
+		local eased = easeOutSine(alpha)
+		local cf = startCFrame:Lerp(targetCFrame, eased)
+		self.Door:PivotTo(cf)
+		if alpha >= 1 then
+			self._animConn:Disconnect()
+			self._animConn = nil
+			onFinish()
+		end
+	end)
 end
 
 function MetalDoor.Init(self: MetalDoorType)
@@ -50,52 +86,42 @@ function MetalDoor.Init(self: MetalDoorType)
 		Utility.Error("No primaryPart found in: " .. self.Door.Name, script.Name)
 		return
 	end
-    self.originCFrame = self.PrimaryPart.CFrame
-    self.openCFrame = self.originCFrame * CFrame.Angles(0, math.rad(120), 0)
+
+	self.originCFrame = self.Door:GetPivot()
+	self.openCFrame = self.originCFrame * CFrame.Angles(0, math.rad(90), 0)
+
 	local DoorObjects: Folder = self.Door:WaitForChild("DoorObjects") :: Folder
-	if not DoorObjects then
-		Utility.Error("No DoorObjects found in: " .. self.Door.Name, script.Name)
-		return
-	end
+    if not DoorObjects then
+        Utility.Error("No DoorObjects found in: " .. self.Door.Name, script.Name)
+    end
 	self.ProximityPrompt = DoorObjects:FindFirstChildOfClass("ProximityPrompt") :: ProximityPrompt
-	if not self.ProximityPrompt then
-		Utility.Error("No ProximityPrompt found in: " .. self.Door.Name, script.Name)
-		return
-	end
-	self.ProximityPrompt.Parent = self.Door
 	self.OpenSound = DoorObjects:FindFirstChild("Open") :: Sound
-	if not self.OpenSound then
-		Utility.Error("No OpenSound found in: " .. DoorObjects.Name, script.Name)
-		return
-	end
-	self.OpenSound.Parent = self.Door
 	self.CloseSound = DoorObjects:FindFirstChild("Close") :: Sound
-	if not self.CloseSound then
-		Utility.Error("No CloseSound found in: " .. DoorObjects.Name, script.Name)
+
+	if not (self.ProximityPrompt and self.OpenSound and self.CloseSound) then
+		Utility.Error("Missing door components", script.Name)
 		return
 	end
+
+	self.ProximityPrompt.Parent = self.Door
+	self.OpenSound.Parent = self.Door
 	self.CloseSound.Parent = self.Door
 
-	-- Connections
-	self.ProximityPrompt.Triggered:Connect(function(player: Player)
+	self._proxiConn = self.ProximityPrompt.Triggered:Connect(function()
+		self.ProximityPrompt.Enabled = false
 		if self.open then
 			self.CloseSound:Play()
 		else
 			self.OpenSound:Play()
 		end
-        local rad: number = self.open and math.rad(-5) or math.rad(5)
-        local cframe: CFrame = CFrame.Angles(0, rad, 0)
-		self.ProximityPrompt.ActionText = self.open and "Open" or "Close"
-		task.spawn(function ()
-            self.ProximityPrompt.Enabled = false
-            for i = 1, 20 do
-                self.Door:PivotTo(self.PrimaryPart.CFrame * cframe)
-                task.wait()
-            end
-            self.ProximityPrompt.Enabled = true
-            self.open = not self.open
+
+		local goalCFrame = self.open and self.originCFrame or self.openCFrame
+		self:_animate(goalCFrame, 1.2, function()
+			self.open = not self.open
+			self.ProximityPrompt.Enabled = true
 		end)
 	end)
+    table.insert(self._allConn, self._proxiConn :: RBXScriptConnection)
 end
 
 return MetalDoor
