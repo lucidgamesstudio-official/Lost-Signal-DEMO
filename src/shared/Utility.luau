@@ -51,46 +51,87 @@ function Utility.CreateFolder(name: string, parentInstance: Instance?): Folder
 	return newFolder
 end
 
---[[
-	@params name: string | parentInstance: Instance?
-	@returns RemoteEvent
-	@description Creates a RemoteEvent and return it, if it already exists, it returns it
+--[[ 
+    @params name: string \
+    @params parentInstance: Instance? <br>
+    @params callback: ((Player, ...any) -> ())? \
+    @returns RemoteEvent \
+    @description Creates or retrieves a RemoteEvent. Callback can be set on server and client automatically.
 ]]
-function Utility.CreateRemoteEvent(name: string, parentInstance: Instance?, callback: ((...any) -> any)?): RemoteEvent
-	local parent: Instance = parentInstance or ReplicatedStorage
-	if parent:FindFirstChild(name) then
-		return parent[name] :: RemoteEvent
-	end
-	local RemoteEvent: RemoteEvent = Instance.new("RemoteEvent")
-	RemoteEvent.Name = name
-	RemoteEvent.Parent = parent or ReplicatedStorage
-	if callback then
-		RemoteEvent.OnServerEvent:Connect(callback)
-	end
-	return RemoteEvent
+function Utility.CreateRemoteEvent(
+    name: string,
+    parentInstance: Instance?,
+    callback: ((Player, ...any) -> ())?
+): RemoteEvent
+    local parent = parentInstance or ReplicatedStorage
+    local remote = parent:FindFirstChild(name)
+    if remote and remote:IsA("RemoteEvent") then
+        if callback then
+            local hasConnection = false
+            if RunService:IsServer() then
+                hasConnection = remote.OnServerEvent and #remote.OnServerEvent:GetConnections() > 0
+                if not hasConnection then
+                    remote.OnServerEvent:Connect(callback)
+                end
+            elseif RunService:IsClient() then
+                hasConnection = remote.OnClientEvent and #remote.OnClientEvent:GetConnections() > 0
+                if not hasConnection then
+                    remote.OnClientEvent:Connect(callback)
+                end
+            end
+        end
+        return remote
+    end
+    remote = Instance.new("RemoteEvent")
+    remote.Name = name
+    remote.Parent = parent
+    if callback then
+        if RunService:IsServer() then
+            remote.OnServerEvent:Connect(callback)
+        elseif RunService:IsClient() then
+            remote.OnClientEvent:Connect(callback)
+        end
+    end
+    return remote
 end
 
---[[
-	@params name: string | parentInstance: Instance?
-	@returns RemoteFunction
-	@description Creates a RemoteFunction and returns it, if it already exists, it returns it
+--[[ 
+    @params name: string
+    @params parentInstance: Instance? 
+    @params callback: ((Player, ...any) -> any)?
+    @returns RemoteFunction
+    @description Creates or retrieves a RemoteFunction. Callback can be set on server and client automatically.
 ]]
 function Utility.CreateRemoteFunction(
-	name: string,
-	parentInstance: Instance?,
-	callback: ((...any) -> any)?
+    name: string,
+    parentInstance: Instance?,
+    callback: ((Player, ...any) -> any)?
 ): RemoteFunction
-	local parent: Instance = parentInstance or ReplicatedStorage
-	if parent:FindFirstChild(name) then
-		return parent[name] :: RemoteFunction
-	end
-	local RemoteFunction: RemoteFunction = Instance.new("RemoteFunction")
-	RemoteFunction.Name = name
-	RemoteFunction.Parent = parent or ReplicatedStorage
-	if callback then
-		RemoteFunction.OnServerInvoke = callback
-	end
-	return RemoteFunction
+    local parent = parentInstance or ReplicatedStorage
+    local remote = parent:FindFirstChild(name)
+
+    if remote and remote:IsA("RemoteFunction") then
+        if callback then
+            if RunService:IsServer() and remote.OnServerInvoke == nil then
+                remote.OnServerInvoke = callback
+            elseif RunService:IsClient() and remote.OnClientInvoke == nil then
+                remote.OnClientInvoke = callback
+            end
+        end
+        return remote
+    end
+    remote = Instance.new("RemoteFunction")
+    remote.Name = name
+    remote.Parent = parent
+    if callback then
+        if RunService:IsServer() then
+            remote.OnServerInvoke = callback
+        elseif RunService:IsClient() then
+            remote.OnClientInvoke = callback
+        end
+    end
+
+    return remote
 end
 
 --[[
