@@ -199,8 +199,8 @@ end
 	@returns tool: Tool?
 	@description Returns the tool from the ReplicatedStorage, if it doesn't exist, it returns nil
 ]]
-function Utility.GetToolByName(toolName: string)
-	local parent: Instance = ReplicatedStorage:FindFirstChild("Tools") or ReplicatedStorage
+function Utility.GetToolByName(toolName: string, parentInstance: Instance?)
+	local parent: Instance = parentInstance and parentInstance or ReplicatedStorage
 	return parent:FindFirstChild(toolName)
 end
 

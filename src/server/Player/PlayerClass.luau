@@ -32,6 +32,7 @@ export type PlayerClassType = {
 	character: Model,
 	humanoid: Humanoid,
 	HumanoidRootPart: BasePart?,
+	Inventory: Backpack,
 	stamina: number,
 	state: number,
 
@@ -73,6 +74,7 @@ function PlayerClass.new(player: Player): PlayerClassType?
 	local typedSelf: PlayerClassType = self
 
 	typedSelf.player = player
+	typedSelf.Inventory = player.Backpack
 
 	typedSelf.stamina = 100
 	typedSelf.state = PlayerStateEnum.Idle
@@ -98,6 +100,7 @@ function PlayerClass.Init(self: PlayerClassType)
 		Utility.Warn("No humanoid found in " .. self.player.Name, script.Name)
 		return
 	end
+	self.humanoid.WalkSpeed = PLAYER_WALK_SPEED
 	self.HumanoidRootPart = self.character:WaitForChild("HumanoidRootPart") :: BasePart
 	if not self.HumanoidRootPart then
 		Utility.Warn("No HumanoidRootPart found in " .. self.player.Name, script.Name)
@@ -112,7 +115,6 @@ function PlayerClass.Init(self: PlayerClassType)
 			self._playerStaminaRegenThread = nil
 		end
 	end)
-	self.humanoid.WalkSpeed = PLAYER_WALK_SPEED
 end
 
 -- Démarre la consommation de stamina
