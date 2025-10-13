@@ -62,34 +62,90 @@
 	- Bibliothèque perso de fonctions très pratiques
 
 ```mermaid
-mindmap
-  root((Roblox Project))
-    👤 Client
-      Player
-        Inputs.luau:::file[Binding des touches]
-      ProximityPrompt
-        Modules
-          PromptEffect.luau:::file[Gère les effets visuels]
-          PromptText.luau:::file[Gère le texte selon le binding]
-        Prompts
-          CustomPrompt1.luau:::file[Démo de visuel]
-          CustomPrompt2.luau:::file[Création visuelle standard]
-          CustomPrompt3.luau:::file[Autre interface UI]
-          CustomPrompt4.luau:::file[Interface SurfaceGui]
-        CustomPromptHandler.luau:::file[Gère l'apparition et la logique du Prompt]
-      init.client.luau:::file[Initialise les modules client]
-    ⚙️ Server
-      Objects
-        InitObjects.luau:::file[Initialisation des objets]
-        MetalDoorClass.luau:::file[Classe pour les portes en métal]
-      Player
-        PlayerClass.luau:::file[Classe joueur]
-        PlayerManager.luau:::file[Gère les joueurs et leurs appels]
-      init.server.luau:::file[Connexion et gestion serveur]
-    🔁 Shared
-      Utils
-        InputActions.luau:::file[Nouveau système de binding]
-      Utility.luau:::file[Librairie de fonctions utilitaires]
+classDiagram
+    %% =====================
+    %% CLIENT
+    %% =====================
+    class Client {
+        init.client.luau
+    }
+    class Player_Inputs_luau {
+        Binding des touches
+    }
+    class PromptEffect_luau {
+        Gère les effets visuels
+    }
+    class PromptText_luau {
+        Gère le texte selon le binding
+    }
+    class CustomPrompt1_luau {
+        Démo visuelle
+    }
+    class CustomPrompt2_luau {
+        Visuel standard
+    }
+    class CustomPrompt3_luau {
+        Autre UI
+    }
+    class CustomPrompt4_luau {
+        SurfaceGui
+    }
+    class CustomPromptHandler_luau {
+        Gère apparition et logique du prompt
+    }
+
+    Client --> Player_Inputs_luau
+    Client --> PromptEffect_luau
+    Client --> PromptText_luau
+    Client --> CustomPrompt1_luau
+    Client --> CustomPrompt2_luau
+    Client --> CustomPrompt3_luau
+    Client --> CustomPrompt4_luau
+    Client --> CustomPromptHandler_luau
+
+    %% =====================
+    %% SERVER
+    %% =====================
+    class Server {
+        init.server.luau
+    }
+    class Objects_InitObjects_luau {
+        Initialise les objets
+    }
+    class Objects_MetalDoorClass_luau {
+        Classe porte métal
+    }
+    class Player_PlayerClass_luau {
+        Classe joueur
+    }
+    class Player_PlayerManager_luau {
+        Gère les joueurs
+    }
+
+    Server --> Objects_InitObjects_luau
+    Server --> Objects_MetalDoorClass_luau
+    Server --> Player_PlayerClass_luau
+    Server --> Player_PlayerManager_luau
+
+    %% =====================
+    %% SHARED
+    %% =====================
+    class Shared {
+    }
+    class Utils_InputActions_luau {
+        Nouveau système de binding
+    }
+    class Utility_luau {
+        Fonctions utilitaires
+    }
+
+    Shared --> Utils_InputActions_luau
+    Shared --> Utility_luau
+
+    %% RELATIONS TRANSVERSALES
+    Client --> Shared
+    Server --> Shared
+
 ```
 
 ## 🧠 **À prévoir côté scripting**
