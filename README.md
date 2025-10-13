@@ -62,89 +62,41 @@
 	- Bibliothèque perso de fonctions très pratiques
 
 ```mermaid
-classDiagram
-    %% =====================
+%% Diagramme d'arborescence du projet
+graph TD
+    ROOT[Projet]
+
     %% CLIENT
-    %% =====================
-    class Client {
-        init.client.luau
-    }
-    class Player_Inputs_luau {
-        Binding des touches
-    }
-    class PromptEffect_luau {
-        Gère les effets visuels
-    }
-    class PromptText_luau {
-        Gère le texte selon le binding
-    }
-    class CustomPrompt1_luau {
-        Démo visuelle
-    }
-    class CustomPrompt2_luau {
-        Visuel standard
-    }
-    class CustomPrompt3_luau {
-        Autre UI
-    }
-    class CustomPrompt4_luau {
-        SurfaceGui
-    }
-    class CustomPromptHandler_luau {
-        Gère apparition et logique du prompt
-    }
+    ROOT --> CLIENT[👤 Client]
+    CLIENT --> C1[init.client.luau]
+    CLIENT --> C2[Player]
+    C2 --> C2A[Inputs.luau]
+    CLIENT --> C3[ProximityPrompt]
+    C3 --> C3A[Modules]
+    C3A --> C3A1[PromptEffect.luau]
+    C3A --> C3A2[PromptText.luau]
+    C3 --> C3B[Prompts]
+    C3B --> C3B1[CustomPrompt1.luau]
+    C3B --> C3B2[CustomPrompt2.luau]
+    C3B --> C3B3[CustomPrompt3.luau]
+    C3B --> C3B4[CustomPrompt4.luau]
+    C3 --> C3C[CustomPromptHandler.luau]
 
-    Client --> Player_Inputs_luau
-    Client --> PromptEffect_luau
-    Client --> PromptText_luau
-    Client --> CustomPrompt1_luau
-    Client --> CustomPrompt2_luau
-    Client --> CustomPrompt3_luau
-    Client --> CustomPrompt4_luau
-    Client --> CustomPromptHandler_luau
-
-    %% =====================
     %% SERVER
-    %% =====================
-    class Server {
-        init.server.luau
-    }
-    class Objects_InitObjects_luau {
-        Initialise les objets
-    }
-    class Objects_MetalDoorClass_luau {
-        Classe porte métal
-    }
-    class Player_PlayerClass_luau {
-        Classe joueur
-    }
-    class Player_PlayerManager_luau {
-        Gère les joueurs
-    }
+    ROOT --> SERVER[⚙️ Server]
+    SERVER --> S1[init.server.luau]
+    SERVER --> S2[Objects]
+    S2 --> S2A[InitObjects.luau]
+    S2 --> S2B[MetalDoorClass.luau]
+    SERVER --> S3[Player]
+    S3 --> S3A[PlayerClass.luau]
+    S3 --> S3B[PlayerManager.luau]
 
-    Server --> Objects_InitObjects_luau
-    Server --> Objects_MetalDoorClass_luau
-    Server --> Player_PlayerClass_luau
-    Server --> Player_PlayerManager_luau
-
-    %% =====================
     %% SHARED
-    %% =====================
-    class Shared {
-    }
-    class Utils_InputActions_luau {
-        Nouveau système de binding
-    }
-    class Utility_luau {
-        Fonctions utilitaires
-    }
-
-    Shared --> Utils_InputActions_luau
-    Shared --> Utility_luau
-
-    %% RELATIONS TRANSVERSALES
-    Client --> Shared
-    Server --> Shared
+    ROOT --> SHARED[🔁 Shared]
+    SHARED --> SH1[Utils]
+    SH1 --> SH1A[InputActions.luau]
+    SHARED --> SH2[Utility.luau]
 
 ```
 
