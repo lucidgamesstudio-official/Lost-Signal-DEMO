@@ -113,18 +113,30 @@ graph TD
 
 ```mermaid
 stateDiagram-v2
-	A : Idle
-	B : Walk
-	C : Sprint
-	D : Action
-	
-    [*] --> A
-    [*] --> D: MouseLeftButton
-	
-    A --> B: WASD
-    B --> A
-    B --> C: Shift
-    C --> A
+    direction LR
+
+    [*] --> Idle
+    [*] --> Action: MouseLeftButton
+
+    state Idle {
+        [*] --> Stand
+        Stand --> [*]
+    }
+
+    Idle --> Walk: WASD
+    Walk --> Idle: Release
+    Walk --> Sprint: Shift
+    Sprint --> Idle: Release
+
+    Idle --> Crouch: C
+    Walk --> Crouch: C
+    Sprint --> Crouch: C
+    Crouch --> Idle: Release
+    Crouch --> Walk: Release
+
+    note left of Idle: État par défaut
+    note right of Action: Actions instantanées (ex attaques)
+
 ```
 </div>
 
