@@ -20,17 +20,77 @@
 
 ## 🧱 **Structure technique du projet**
 
+### 👤Client
 
-| Module / Dossier              | Contenu                                           |
-| ----------------------------- | ------------------------------------------------- |
-| `src/Client/Player/`          | Scripts de mouvement, sprint, lampe, UI           |
-| src/Client/Player/Inputs.luau | Module de mouvemevent                             |
-| `src/Client/UI/`              | Barre de stamina, prompts, joural/logs            |
-| `src/Shared/Config/`          | Paramètres (vitesse, stamina max, cooldowns, etc) |
-| `src/Shared/Utils`            | Scripts utilitaires partagés                      |
-| `src/Server/Events/`          | Apparitions, triggers, scripts de fin             |
-| `tests/`                      | Tests unitaires                                   |
+- `Player/Inputs.luau`: 
+	- Binding des touches
+- `ProximityPrompt/Modules/PromptEffect.luau`: 
+	- Gère la création et la suppression des effets des `ProximityPrompt`
+- `ProximityPrompt/Modules/PromptText.luau`: 
+	- Gère le visuel du texte afficher en fonction du binding
+- `ProximityPrompt/Prompts/CustomPrompt1.luau`:
+	- Module de démo pour créer un visuel
+- `ProximityPrompt/Prompts/CustomPrompt2`:
+	- Module de création de visuel pour `ProximityPrompt`
+- `ProximityPrompt/Prompts/CustomPrompt3.luau`:
+	- Pareille mais utilise un autre UI
+- `ProximityPrompt/Prompts/CustomPrompt4.luau`:
+	- Pareille mais utilise un `SurfaceGui`
+- `ProximityPrompt/CustomPromptHandler.luau`:
+	- Gère l'apparition du `ProximityPrompt` en fonction des paramètres qu'il contient
+- `init.client.luau`:
+	- Appelle les modules pour les initialiser
 
+### ⚙️Server
+
+- `Objects/InitObjects.luau`:
+	- Appelle les objets créés et les initialise
+- `Objects/MetalDoorClass.luau`:
+	- Classe pour les portes en métal
+- `Player/PlayerClass.luau`:
+	- Classe pour les joueur
+- `Player/PlayerManager.luau`:
+	- Gère les joueurs et les appels
+- `init.server.luau`:
+	-  Gère la connexion des joueurs et du serveur
+
+### 🔁 Shared
+
+- `Utils/InputActions.luau`:
+	- Module très puissant utilisant le nouveau type de binding
+- `Utility.luau`:
+	- Bibliothèque perso de fonctions très pratiques
+
+```mermaid
+mindmap
+  root((Roblox Project))
+    👤 Client
+      Player
+        Inputs.luau:::file[Binding des touches]
+      ProximityPrompt
+        Modules
+          PromptEffect.luau:::file[Gère les effets visuels]
+          PromptText.luau:::file[Gère le texte selon le binding]
+        Prompts
+          CustomPrompt1.luau:::file[Démo de visuel]
+          CustomPrompt2.luau:::file[Création visuelle standard]
+          CustomPrompt3.luau:::file[Autre interface UI]
+          CustomPrompt4.luau:::file[Interface SurfaceGui]
+        CustomPromptHandler.luau:::file[Gère l'apparition et la logique du Prompt]
+      init.client.luau:::file[Initialise les modules client]
+    ⚙️ Server
+      Objects
+        InitObjects.luau:::file[Initialisation des objets]
+        MetalDoorClass.luau:::file[Classe pour les portes en métal]
+      Player
+        PlayerClass.luau:::file[Classe joueur]
+        PlayerManager.luau:::file[Gère les joueurs et leurs appels]
+      init.server.luau:::file[Connexion et gestion serveur]
+    🔁 Shared
+      Utils
+        InputActions.luau:::file[Nouveau système de binding]
+      Utility.luau:::file[Librairie de fonctions utilitaires]
+```
 
 ## 🧠 **À prévoir côté scripting**
 
@@ -64,4 +124,3 @@ stateDiagram-v2
 ##### *Credits to:* 
 <a href="https://obsidian.md/" style="text-decoration: none; color: gold; margin-left: 10px;"> Obsidian </a> \
 <a href="https://obsidian.md/" style="text-decoration: none; color: gold; margin-left: 10px;"> Mermaid </a>
-
