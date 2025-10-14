@@ -100,16 +100,10 @@ graph TD
 
 ```
 
-## 🧠 **À prévoir côté scripting**
 
-- **Gestion des inputs** : `UserInputService` pour `Shift`, `Ctrl`, `F`, `E`
-- **État du joueur** : `isCrouching`, `isSprinting`, `stamina`, `hasFlashlight`
-- **Effets dynamiques** : `TweenService`, `Lighting`, `SoundService`
-- **Interactions** : `ProximityPrompt`, `ClickDetector`, ou système custom
-- **Narration** : `ModuleScript` pour stocker les logs, dialogues, événements
 <div style="margin: auto; text-align: center">
 
-### State Machine
+## State Machine
 
 ```mermaid
 stateDiagram-v2
@@ -139,6 +133,122 @@ stateDiagram-v2
 
 ```
 </div>
+
+## 🚀 ProximityPrompt : Un système de prompts personnalisables
+
+Ce projet propose une approche flexible pour gérer et afficher des prompts interactifs dans votre jeu, offrant des options de personnalisation avancées pour le visuel et le comportement.
+
+### 🏗️ Architecture
+
+Le système est conçu de manière modulaire, facilitant l'ajout de nouveaux types de prompts et d'effets.
+
+```mermaid
+flowchart TD
+    subgraph Core Logic
+        A[CustomPromptHandler] --> B(Modules)
+        A --> C(Prompts)
+    end
+
+    subgraph Prompt Modules
+        C --> F(CustomPrompt1.luau)
+        C --> G(CustomPrompt2.luau)
+        C --> H(CustomPrompt3.luau)
+        C --> I(CustomPrompt4.luau)
+    end
+
+    subgraph Effect Modules
+        B --> D(PromptEffect.luau)
+        B --> E(PromptText.luau)
+    end
+
+    classDef coreStyle fill:#f9f,stroke:#333,stroke-width:2px;
+    classDef moduleStyle fill:#ccf,stroke:#333,stroke-width:2px;
+    classDef effectStyle fill:#cff,stroke:#333,stroke-width:2px;
+
+    class A coreStyle;
+    class B,C moduleStyle;
+    class D,E effectStyle;
+    class F,G,H,I moduleStyle;
+
+    click A "## Logic"
+    click B "## Logic"
+    click C "## Logic"
+    click D "## Logic"
+    click E "## Logic"
+    click F "## Logic"
+    click G "## Logic"
+    click H "## Logic"
+    click I "## Logic"
+```
+
+_Cliquez sur les éléments du diagramme pour naviguer vers la section "Logic"._
+
+### 🧠 Logique des Composants
+
+Chaque module a une responsabilité claire au sein du système.
+
+- `CustomPromptHandler.luau`
+    - **Rôle :** Le cœur du système. Il maintient le service des prompts, gère leur affichage et leur tri en fonction de la proximité et des configurations.
+- `PromptEffect.luau`
+    - **Rôle :** S'occupe de la création et de la gestion des effets visuels secondaires, tels que les `Beam` ou `Highlight`, qui accompagnent les prompts.
+- `PromptText.luau`
+    - **Rôle :** Gère l'affichage dynamique de l'ActionText et de l'ObjectText. (Note: Ce module peut être simplifié ou retiré si ces fonctionnalités ne sont pas utilisées.)
+- `CustomPrompt1.luau`
+    - **Description :** Un module de démonstration simple pour illustrer les bases d'un prompt personnalisé.
+- `CustomPrompt2.luau`
+    - **Description :** Module de prompt optimisé pour un affichage via un `BillboardGui` flottant au-dessus de l'objet.
+- `CustomPrompt3.luau`
+    - **Description :** Similaire au CustomPrompt2, mais intégrant des effets visuels et/ou sonores différents pour une expérience utilisateur variée.
+- `CustomPrompt4.luau`
+    - **Description :** Module de `prompt` conçu pour s'intégrer à un `SurfaceGui`, idéal pour les interactions directes sur la surface d'un objet. (C'est le module actuellement utilisé dans le jeu principal.)
+
+### ⚙️ Mise en Place d'un ProximityPrompt Personnalisé
+
+Pour implémenter votre ProximityPrompt personnalisé, suivez ces étapes de configuration :
+
+1. **Ajoutez une `Configuration`**
+    
+    - Insérez une instance de `Configuration` dans l'objet où se trouve votre `ProximityPrompt` et nommez-la '**CustomPromptConf**'.
+2. **Configurez les Options (valeurs booléennes et leurs sous-paramètres)**
+    
+    - À l'intérieur de '**CustomPromptConf**', vous pouvez ajouter des `BoolValue` pour activer différentes fonctionnalités. Pour chaque `BoolValue`, des paramètres spécifiques peuvent être définis :
+        
+        - **BoolValue nommé `Beam`**
+            
+            - Active un effet de `Beam` émanant de l'objet.
+            - **Paramètres disponibles (exemples non exhaustifs) :**
+                - **BeamColor**: `Color3Value` (Couleur du faisceau)
+                - **BeamTexture**: `StringValue` (ID de l'asset de texture du faisceau)
+                - **BeamTransparency**: `NumberValue` (Transparence du faisceau, de 0 à 1)
+                - **BeamWidth**: `NumberValue` (Largeur du faisceau)
+        - `**BoolValue` nommé CustomPrompt**
+            
+            - Indique que vous souhaitez utiliser un `ProximityPrompt` visuellement personnalisé.
+            - **Paramètre requis :**
+                - **PromptName**: `StringValue` (Ceci doit correspondre au nom de votre GUI personnalisé, voir l'étape suivante.)
+        - **BoolValue nommé `Highlight`**
+            
+            - Active un effet de `Highlight` sur l'objet.
+            - **Paramètres disponibles :**
+                - **HighlightColor**: `Color3Value` (Couleur du contour lumineux)
+                - **HighlightParent**: `ObjectValue` (L'objet sur lequel appliquer le Highlight si différent de l'objet parent)
+                - **HighlightTransparency**: `NumberValue` (Transparence du Highlight, de 0 à 1)
+3. **Préparez votre Interface Graphique (GUI) Personnalisée**
+    
+    - Assurez-vous d'avoir un `Folder` nommé ProxisGui dans ReplicatedStorage.
+    - Placez votre GUI personnalisé (par exemple, un `ScreenGui`, `BillboardGui`, `SurfaceGui`) à l'intérieur de ce `Folder`.
+    - **Nommage Important :** Le nom de votre GUI **doit** correspondre exactement au nom du module de prompt que vous souhaitez utiliser. Par exemple, si votre module s'appelle `CustomPrompt77.luau`, nommez votre `GUI` '**CustomPrompt77**'.
+    - Ce nom doit également être défini dans le PromptName de la `StringValue` mentionnée à l'étape 2.2 pour que le système puisse l'identifier et l'afficher correctement.
+## Inventory
+
+```mermaid
+
+```
+
+## Lampe
+
+- Todo
+
 
 --- 
 ##### *Credits to:* 
