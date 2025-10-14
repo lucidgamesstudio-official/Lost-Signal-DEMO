@@ -1,6 +1,5 @@
--- Object
-local Inputs = {}
-Inputs.__index = Inputs
+-- Inputs.luau
+-- Gère les entrées clavier et les relie aux actions (sprint, crouch, inventaire, etc.)
 
 -- Services
 local Players = game:GetService("Players")
@@ -10,14 +9,9 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Utility = require(ReplicatedStorage.Shared.Utility)
 local InputActions = require(ReplicatedStorage.Shared.Utils.InputActions)
 
--- Types
-export type InputsType = {
-	-- Public
-
-	-- Private
-	CONTEXTS: { [string]: number },
-	ACTIONS: { [string]: number },
-}
+-- Classe
+local Inputs = {}
+Inputs.__index = Inputs
 
 -- Constantes
 Inputs.CONTEXTS = {
@@ -30,75 +24,109 @@ Inputs.ACTIONS = {
 	SPRINT = "SPRINT",
 	CROUCH = "CROUCH",
 	ACTION = "ACTION",
+	INVENT = "INVENT",
 }
 
-local REMOTE_EVENT_FOLDER = Utility.CreateFolder("RemoteEvents")
-local START_SPRINT_REMOTE = Utility.CreateRemoteEvent("startSprint", REMOTE_EVENT_FOLDER)
-local STOP_SPRINT_REMOTE = Utility.CreateRemoteEvent("stopSprint", REMOTE_EVENT_FOLDER)
-local START_CROUCH_REMOTE = Utility.CreateRemoteEvent("startCrouch", REMOTE_EVENT_FOLDER)
-local STOP_CROUCH_REMOTE = Utility.CreateRemoteEvent("stopCrouch", REMOTE_EVENT_FOLDER)
-local ACTION_REMOTE = Utility.CreateRemoteEvent("action", REMOTE_EVENT_FOLDER)
-local SEND_CONN_REMOTE = Utility.CreateRemoteEvent("addConnections", REMOTE_EVENT_FOLDER)
+-- Constructeur
+function Inputs.new(inventory)
+	local self = setmetatable({}, Inputs)
+	self.Inventory = inventory
+	self.Connections = {}
 
--- Variables
-local connections: { RBXScriptConnection | thread } = {}
+	self.RemoteFolder = Utility.CreateFolder("RemoteEvents")
+	self:SetupRemotes()
+	self:BindInputs()
+	InputActions.EnableContext(Inputs.CONTEXTS.NORMAL)
 
---=========================================
--- HELPERS
---=========================================
+	return self
+end
 
---=========================================
--- Actions
---=========================================
+-- Création des RemoteEvents
+function Inputs:SetupRemotes()
+	self.StartSprintRemote = Utility.CreateRemoteEvent("startSprint", self.RemoteFolder)
+	self.StopSprintRemote = Utility.CreateRemoteEvent("stopSprint", self.RemoteFolder)
+	self.StartCrouchRemote = Utility.CreateRemoteEvent("startCrouch", self.RemoteFolder)
+	self.StopCrouchRemote = Utility.CreateRemoteEvent("stopCrouch", self.RemoteFolder)
+	self.ActionRemote = Utility.CreateRemoteEvent("action", self.RemoteFolder)
+	self.SendConnRemote = Utility.CreateRemoteEvent("addConnections", self.RemoteFolder)
+end
 
--- SPRINT
-local sprint: InputActions.Action = InputActions.GetAction(Inputs.CONTEXTS.NORMAL, Inputs.ACTIONS.SPRINT)
-sprint.KeyboardBinding.KeyCode = Enum.KeyCode.LeftShift
+-- Enregistrement d'une connexion
+function Inputs:RegisterConnection(conn)
+	table.insert(self.Connections, conn)
+end
 
-local startSprintConn: RBXScriptConnection = sprint.Pressed:Connect(function()
-	if Players.LocalPlayer.Character then
-		START_SPRINT_REMOTE:FireServer()
+-- Liaison des touches
+function Inputs:BindInputs()
+	local player = Players.LocalPlayer
+	local function hasCharacter()
+		return player and player.Character
 	end
-end)
-table.insert(connections, startSprintConn)
 
-local stopSprintConn: RBXScriptConnection = sprint.Released:Connect(function()
-	if Players.LocalPlayer.Character then
-		STOP_SPRINT_REMOTE:FireServer()
+	-- Sprint
+	local sprint = InputActions.GetAction(self.CONTEXTS.NORMAL, self.ACTIONS.SPRINT)
+	sprint.KeyboardBinding.KeyCode = Enum.KeyCode.LeftShift
+
+	self:RegisterConnection(sprint.Pressed:Connect(function()
+		if hasCharacter() then
+			self.StartSprintRemote:FireServer()
+		end
+	end))
+
+	self:RegisterConnection(sprint.Released:Connect(function()
+		if hasCharacter() then
+			self.StopSprintRemote:FireServer()
+		end
+	end))
+
+	-- Crouch
+	local crouch = InputActions.GetAction(self.CONTEXTS.NORMAL, self.ACTIONS.CROUCH)
+	crouch.KeyboardBinding.KeyCode = Enum.KeyCode.C
+
+	self:RegisterConnection(crouch.Pressed:Connect(function()
+		if hasCharacter() then
+			self.StartCrouchRemote:FireServer()
+		end
+	end))
+
+	self:RegisterConnection(crouch.Released:Connect(function()
+		if hasCharacter() then
+			self.StopCrouchRemote:FireServer()
+		end
+	end))
+
+	-- Action
+	local action = InputActions.GetAction(self.CONTEXTS.NORMAL, self.ACTIONS.ACTION)
+	action.KeyboardBinding.KeyCode = Enum.KeyCode.MouseLeftButton
+
+	self:RegisterConnection(action.Pressed:Connect(function()
+		if hasCharacter() then
+			self.ActionRemote:FireServer()
+		end
+	end))
+
+	-- Inventaire
+	local invent = InputActions.GetAction(self.CONTEXTS.NORMAL, self.ACTIONS.INVENT)
+	invent.KeyboardBinding.KeyCode = Enum.KeyCode.Tab
+
+	self:RegisterConnection(invent.Pressed:Connect(function()
+		if hasCharacter() and self.Inventory then
+			self.Inventory:ShowInventory()
+		end
+	end))
+
+	-- Envoi des connexions au serveur (si besoin)
+	self.SendConnRemote:FireServer(self.Connections)
+end
+
+-- Nettoyage des connexions
+function Inputs:Destroy()
+	for _, conn in ipairs(self.Connections) do
+		if conn.Disconnect then
+			conn:Disconnect()
+		end
 	end
-end)
-table.insert(connections, stopSprintConn)
-
--- CROUCH
-local crouch: InputActions.Action = InputActions.GetAction(Inputs.CONTEXTS.NORMAL, Inputs.ACTIONS.CROUCH)
-crouch.KeyboardBinding.KeyCode = Enum.KeyCode.C
-
-local startCrouchConn: RBXScriptConnection = crouch.Pressed:Connect(function()
-	if Players.LocalPlayer.Character then
-		START_CROUCH_REMOTE:FireServer()
-	end
-end)
-table.insert(connections, startCrouchConn)
-
-local stopCrouchConn: RBXScriptConnection = crouch.Released:Connect(function()
-	if Players.LocalPlayer.Character then
-		STOP_CROUCH_REMOTE:FireServer()
-	end
-end)
-table.insert(connections, stopCrouchConn)
-
--- ACTION
-local action: InputActions.Action = InputActions.GetAction(Inputs.CONTEXTS.NORMAL, Inputs.ACTIONS.ACTION)
-action.KeyboardBinding.KeyCode = Enum.KeyCode.MouseLeftButton
-
-local actionConn: RBXScriptConnection = crouch.Pressed:Connect(function()
-	if Players.LocalPlayer.Character then
-		ACTION_REMOTE:FireServer()
-	end
-end)
-table.insert(connections, actionConn)
-
--- Send connections to player
-SEND_CONN_REMOTE:FireServer(connections)
+	table.clear(self.Connections)
+end
 
 return Inputs
