@@ -91,4 +91,31 @@ Utility.CreateRemoteEvent("stopSprint", REMOTE_EVENT_FOLDER, function(player: Pl
 	playerObj:StopRun()
 end)
 
+Utility.CreateRemoteEvent("AddItem", REMOTE_EVENT_FOLDER, function(player: Player, toolName: string)
+	local playerObj: PlayerClass.PlayerClassType = PlayerManager.getPlayer(player)
+	if not playerObj then
+		Utility.Warn(playerUnfound(player), script.Name)
+		return
+	end
+	playerObj:AddItem(toolName)
+end)
+
+Utility.CreateRemoteEvent("EquipTool", REMOTE_EVENT_FOLDER, function(player: Player, toolName: string)
+	local playerObj: PlayerClass.PlayerClassType = PlayerManager.getPlayer(player)
+	if not playerObj then
+		Utility.Warn(playerUnfound(player), script.Name)
+		return
+	end
+	playerObj:EquipTool(toolName)
+end)
+
+Utility.CreateRemoteEvent("UnequipTool", REMOTE_EVENT_FOLDER, function(player: Player)
+	local playerObj: PlayerClass.PlayerClassType = PlayerManager.getPlayer(player)
+	if not playerObj then
+		Utility.Warn(playerUnfound(player), script.Name)
+		return
+	end
+	playerObj:UnequipTool()
+end)
+
 return PlayerManager
