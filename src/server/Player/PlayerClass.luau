@@ -21,6 +21,9 @@ local MAX_STAMINA = 100
 local PLAYER_WALK_SPEED = 16
 local PLAYER_RUN_SPEED = 24
 
+-- Folders
+local ITEM_FOLDER = Utility.CreateFolder("Items")
+
 -- Types
 export type BetterThread = thread & {
 	_stopped: boolean,
@@ -32,7 +35,6 @@ export type PlayerClassType = {
 	character: Model,
 	humanoid: Humanoid,
 	HumanoidRootPart: BasePart?,
-	Inventory: Backpack,
 	stamina: number,
 	state: number,
 
@@ -47,6 +49,9 @@ export type PlayerClassType = {
 	Init: (self: PlayerClassType) -> (),
 	StartRun: (self: PlayerClassType) -> (),
 	StopRun: (self: PlayerClassType) -> (),
+	AddItem: (self: PlayerClassType, toolName: string) -> (),
+	EquipTool: (self: PlayerClassType, toolName: string) -> (),
+	UnequipTool: (self: PlayerClassType) -> (),
 	Disconnect: (self: PlayerClassType) -> (),
 	AddConnection: (self: PlayerClassType, conn: RBXScriptConnection | thread) -> (),
 	RemoveConnection: (self: PlayerClassType, conn: RBXScriptConnection | thread) -> (),
@@ -74,7 +79,6 @@ function PlayerClass.new(player: Player): PlayerClassType?
 	local typedSelf: PlayerClassType = self
 
 	typedSelf.player = player
-	typedSelf.Inventory = player.Backpack
 
 	typedSelf.stamina = 100
 	typedSelf.state = PlayerStateEnum.Idle
@@ -190,6 +194,31 @@ function PlayerClass.StopRun(self: PlayerClassType)
 		end
 		self:RemoveConnection(regenThread)
 	end)
+end
+
+function PlayerClass.AddItem(self: PlayerClassType, toolName: string)
+	print("add item")
+	local tool: Tool = Utility.GetToolByName(toolName, ITEM_FOLDER)
+	if not tool then
+		return Utility.Error(`Warn: item {toolName} does not exist`, script.Name)
+	end
+	local clone: Tool = tool:Clone()
+	clone.Parent = self.player.Backpack
+	return
+end
+
+function PlayerClass.EquipTool(self: PlayerClassType, toolName: string)
+	print("equip")
+	local tool = self.player.Backpack:FindFirstChild(toolName)
+	if not tool then
+		return Utility.Warn("Warn: No tool found with the name: " .. toolName, script.Name)
+	end
+	return self.humanoid:EquipTool(tool)
+end
+
+function PlayerClass.UnequipTool(self: PlayerClassType)
+	print("unequip")
+	self.humanoid:UnequipTools()
 end
 
 function PlayerClass.AddConnection(self: PlayerClassType, conn: RBXScriptConnection | thread)
