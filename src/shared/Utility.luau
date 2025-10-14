@@ -194,6 +194,20 @@ function Utility.GetToolFromCharacter(character: Model, name: string?)
 	return tool
 end
 
+--[=[
+	@params **character**: `Model`<br>
+	@returns **found**: `boolean`<br>
+	@description Return `true` if the player hold a `tool`, return `false` if not
+]=]
+function Utility.IsHoldingTool(character: Model): boolean
+	for _, child in ipairs(character:GetChildren()) do
+		if child:IsA("Tool") then
+			return true
+		end
+	end
+	return false
+end
+
 --[[
 	@params toolName: string
 	@returns tool: Tool?
