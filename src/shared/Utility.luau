@@ -181,6 +181,23 @@ function Utility.CreateBindableFunction(
 end
 
 --[[
+	@params parent: Instance <br>
+	@params childType: string? <br>
+	@return childs: { T }
+	@description Return a table of the children with the type given, if no type give then the type of the parent is take
+]]
+function Utility.GetChildrenOfClass<T>(parent: Instance, childType: string?): { T }
+	childType = childType or typeof(parent)
+	local childs: { T } = {}
+	for _, child in ipairs(parent:GetChildren()) do
+		if child:IsA(childType) then
+			table.insert(childs, child)
+		end
+	end
+	return childs
+end
+
+--[[
 	@params name: string | parent: string?
 	@returns tool: Tool?
 	@description Returns the tool from the character, if it doesn't exist, it returns nil
@@ -243,6 +260,15 @@ end
 ]]
 function Utility.GetPantsFromCharacter(character: Model): Pants?
 	return character:FindFirstChildWhichIsA("Pants") :: Pants?
+end
+
+--[[
+	@params item: T
+	@returns nil
+	@description Display the type of the item and the item itself
+]]
+function Utility.DebugItem<T>(item: T)
+	print(`typeof: {typeof(item)} | item: {item}`)
 end
 
 return Utility
