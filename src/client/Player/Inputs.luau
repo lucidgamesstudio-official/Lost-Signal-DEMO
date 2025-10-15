@@ -6,6 +6,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Modules
+local Inventory = require(script.Parent.Inventory)
 local Utility = require(ReplicatedStorage.Shared.Utility)
 local InputActions = require(ReplicatedStorage.Shared.Utils.InputActions)
 
@@ -25,10 +26,14 @@ Inputs.ACTIONS = {
 	CROUCH = "CROUCH",
 	ACTION = "ACTION",
 	INVENT = "INVENT",
+	UEQUIP = "UEQUIP",
+	SELECT_SLOT_1 = "SELECT_SLOT_1",
+	SELECT_SLOT_2 = "SELECT_SLOT_2",
+	SELECT_SLOT_3 = "SELECT_SLOT_3",
 }
 
 -- Constructeur
-function Inputs.new(inventory)
+function Inputs.new(inventory: Inventory.PlayerInventoryType)
 	local self = setmetatable({}, Inputs)
 	self.Inventory = inventory
 	self.Connections = {}
@@ -49,11 +54,41 @@ function Inputs:SetupRemotes()
 	self.StopCrouchRemote = Utility.CreateRemoteEvent("stopCrouch", self.RemoteFolder)
 	self.ActionRemote = Utility.CreateRemoteEvent("action", self.RemoteFolder)
 	self.SendConnRemote = Utility.CreateRemoteEvent("addConnections", self.RemoteFolder)
+	self.EquipToolRemote = Utility.CreateRemoteEvent("EquipTool", self.RemoteFolder)
+	self.UnequipToolRemote = Utility.CreateRemoteEvent("UnequipTool", self.RemoteFolder)
 end
 
 -- Enregistrement d'une connexion
 function Inputs:RegisterConnection(conn)
 	table.insert(self.Connections, conn)
+end
+
+-- Helper pour tenter d’équiper un slot
+function Inputs:TryEquipSlot(slotIndex: number)
+	if not self.Inventory then return end
+
+	local container = self.Inventory.SlotContainer
+	if not container then return end
+
+	local slot = self.Inventory:GetSlotByIndex(slotIndex)
+	if not slot then
+		Utility.Warn("Warn: no slot found with index: " .. tostring(slotIndex), script.Name)
+		return -- slot inexistant
+	end
+
+	local toolName = slot.Name
+	local player = Players.LocalPlayer
+	local character = player.Character
+
+	if not character then return end
+
+	-- Si le joueur a déjà ce tool équipé, on le retire
+	if Utility.GetToolFromCharacter(character, toolName) then
+		self.UnequipToolRemote:FireServer()
+		self.EquipToolRemote:FireServer(toolName)
+	else
+		self.EquipToolRemote:FireServer(toolName)
+	end
 end
 
 -- Liaison des touches
@@ -111,11 +146,43 @@ function Inputs:BindInputs()
 
 	self:RegisterConnection(invent.Pressed:Connect(function()
 		if hasCharacter() and self.Inventory then
-			self.Inventory:ShowInventory()
+			if not self.Inventory.isVisible then
+				self.Inventory:ShowInventory()
+			else
+				self.Inventory:HideInventory()
+			end
 		end
 	end))
 
-	-- Envoi des connexions au serveur (si besoin)
+	-- Unequip (clic droit)
+	local unequip = InputActions.GetAction(self.CONTEXTS.NORMAL, self.ACTIONS.UEQUIP)
+	unequip.KeyboardBinding.KeyCode = Enum.KeyCode.MouseRightButton
+
+	self:RegisterConnection(unequip.Pressed:Connect(function()
+		if hasCharacter() and Utility.IsHoldingTool(hasCharacter()) then
+			self.UnequipToolRemote:FireServer()
+		end
+	end))
+
+	-- Raccourcis slots (touches & ~ ")
+	local slotBindings = {
+		[1] = Enum.KeyCode.One, 	-- &
+		[2] = Enum.KeyCode.Two,  	-- ~
+		[3] = Enum.KeyCode.Three, 	-- "
+	}
+
+	for index, keycode in ipairs(slotBindings) do
+		local selectAction = InputActions.GetAction(self.CONTEXTS.NORMAL, "SELECT_SLOT_" .. index)
+		selectAction.KeyboardBinding.KeyCode = keycode
+
+		self:RegisterConnection(selectAction.Pressed:Connect(function()
+			if hasCharacter() then
+				self:TryEquipSlot(index)
+			end
+		end))
+	end
+
+	-- Envoi des connexions au serveur
 	self.SendConnRemote:FireServer(self.Connections)
 end
 
