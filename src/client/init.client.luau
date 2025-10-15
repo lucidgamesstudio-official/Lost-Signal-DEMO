@@ -7,17 +7,19 @@ local StarterGui = game:GetService("StarterGui")
 local Utility = require(ReplicatedStorage.Shared.Utility)
 local Inputs = require(script.Player.Inputs)
 local InventoryModule = require(script.Player.Inventory)
-local CustomPromptHandler = require(script.ProximityPrompt.CustomPromptHandler)
+local _ = require(script.ProximityPrompt.CustomPromptHandler)
 
 -- RemoteFolder
 local REMOTE_FOLDER = Utility.CreateFolder("RemoteEvents")
 
 -- Disable default GUI
 StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Backpack, false)
+StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.PlayerList, false)
 
 -- Handle backpack
 local Backpack: Backpack = Players.LocalPlayer.Backpack
 local Inventory = InventoryModule.new(Players.LocalPlayer)
+Inputs.new(Inventory)
 local BackpackAddedConn: RBXScriptConnection
 local BackpackRemoveConn: RBXScriptConnection
 
