@@ -1,4 +1,5 @@
 -- Services
+local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage: ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -59,40 +60,40 @@ end
     @description Creates or retrieves a RemoteEvent. Callback can be set on server and client automatically.
 ]]
 function Utility.CreateRemoteEvent(
-    name: string,
-    parentInstance: Instance?,
-    callback: ((Player, ...any) -> ())?
+	name: string,
+	parentInstance: Instance?,
+	callback: ((Player, ...any) -> ())?
 ): RemoteEvent
-    local parent = parentInstance or ReplicatedStorage
-    local remote = parent:FindFirstChild(name)
-    if remote and remote:IsA("RemoteEvent") then
-        if callback then
-            local hasConnection = false
-            if RunService:IsServer() then
-                hasConnection = remote.OnServerEvent and #remote.OnServerEvent:GetConnections() > 0
-                if not hasConnection then
-                    remote.OnServerEvent:Connect(callback)
-                end
-            elseif RunService:IsClient() then
-                hasConnection = remote.OnClientEvent and #remote.OnClientEvent:GetConnections() > 0
-                if not hasConnection then
-                    remote.OnClientEvent:Connect(callback)
-                end
-            end
-        end
-        return remote
-    end
-    remote = Instance.new("RemoteEvent")
-    remote.Name = name
-    remote.Parent = parent
-    if callback then
-        if RunService:IsServer() then
-            remote.OnServerEvent:Connect(callback)
-        elseif RunService:IsClient() then
-            remote.OnClientEvent:Connect(callback)
-        end
-    end
-    return remote
+	local parent = parentInstance or ReplicatedStorage
+	local remote = parent:FindFirstChild(name)
+	if remote and remote:IsA("RemoteEvent") then
+		if callback then
+			local hasConnection = false
+			if RunService:IsServer() then
+				hasConnection = remote.OnServerEvent and #remote.OnServerEvent:GetConnections() > 0
+				if not hasConnection then
+					remote.OnServerEvent:Connect(callback)
+				end
+			elseif RunService:IsClient() then
+				hasConnection = remote.OnClientEvent and #remote.OnClientEvent:GetConnections() > 0
+				if not hasConnection then
+					remote.OnClientEvent:Connect(callback)
+				end
+			end
+		end
+		return remote
+	end
+	remote = Instance.new("RemoteEvent")
+	remote.Name = name
+	remote.Parent = parent
+	if callback then
+		if RunService:IsServer() then
+			remote.OnServerEvent:Connect(callback)
+		elseif RunService:IsClient() then
+			remote.OnClientEvent:Connect(callback)
+		end
+	end
+	return remote
 end
 
 --[[ 
@@ -103,35 +104,35 @@ end
     @description Creates or retrieves a RemoteFunction. Callback can be set on server and client automatically.
 ]]
 function Utility.CreateRemoteFunction(
-    name: string,
-    parentInstance: Instance?,
-    callback: ((Player, ...any) -> any)?
+	name: string,
+	parentInstance: Instance?,
+	callback: ((Player, ...any) -> any)?
 ): RemoteFunction
-    local parent = parentInstance or ReplicatedStorage
-    local remote = parent:FindFirstChild(name)
+	local parent = parentInstance or ReplicatedStorage
+	local remote = parent:FindFirstChild(name)
 
-    if remote and remote:IsA("RemoteFunction") then
-        if callback then
-            if RunService:IsServer() and remote.OnServerInvoke == nil then
-                remote.OnServerInvoke = callback
-            elseif RunService:IsClient() and remote.OnClientInvoke == nil then
-                remote.OnClientInvoke = callback
-            end
-        end
-        return remote
-    end
-    remote = Instance.new("RemoteFunction")
-    remote.Name = name
-    remote.Parent = parent
-    if callback then
-        if RunService:IsServer() then
-            remote.OnServerInvoke = callback
-        elseif RunService:IsClient() then
-            remote.OnClientInvoke = callback
-        end
-    end
+	if remote and remote:IsA("RemoteFunction") then
+		if callback then
+			if RunService:IsServer() and remote.OnServerInvoke == nil then
+				remote.OnServerInvoke = callback
+			elseif RunService:IsClient() and remote.OnClientInvoke == nil then
+				remote.OnClientInvoke = callback
+			end
+		end
+		return remote
+	end
+	remote = Instance.new("RemoteFunction")
+	remote.Name = name
+	remote.Parent = parent
+	if callback then
+		if RunService:IsServer() then
+			remote.OnServerInvoke = callback
+		elseif RunService:IsClient() then
+			remote.OnClientInvoke = callback
+		end
+	end
 
-    return remote
+	return remote
 end
 
 --[[
@@ -233,6 +234,62 @@ end
 function Utility.GetToolByName(toolName: string, parentInstance: Instance?)
 	local parent: Instance = parentInstance and parentInstance or ReplicatedStorage
 	return parent:FindFirstChild(toolName)
+end
+
+--[[
+	@params tool: Tool
+	@returns nil
+	@description Attach a temporary Motor6D between the right arm and the tool handle.
+]]
+function Utility.AddMotorToTool(tool: Tool)
+	local character = tool.Parent
+	if not character or not Players:GetPlayerFromCharacter(character) then
+		return Utility.Warn("Warn: no valid character found", script.Name)
+	end
+
+	local handle = tool:FindFirstChild("Handle") :: BasePart?
+	if not handle then
+		return Utility.Warn("Warn: no handle found on tool", script.Name)
+	end
+
+	-- Détection du rig
+	local humanoid = character:FindFirstChildOfClass("Humanoid")
+	if not humanoid then
+		return Utility.Warn("Warn: no humanoid found", script.Name)
+	end
+
+	local isR15 = humanoid.RigType == Enum.HumanoidRigType.R15
+	local rightArm = character:FindFirstChild(isR15 and "RightHand" or "Right Arm") :: BasePart?
+	if not rightArm then
+		return Utility.Warn("Warn: no right arm found", script.Name)
+	end
+
+	local rightGrip = rightArm:FindFirstChild("RightGrip") :: Weld?
+	if not rightGrip then
+		return Utility.Warn("Warn: no RightGrip found", script.Name)
+	end
+
+	-- Crée le Motor6D et désactive le grip
+	rightGrip.Enabled = false
+
+	local motor = Instance.new("Motor6D")
+	motor.Name = "ToolMotor"
+	motor.Part0 = rightArm
+	motor.Part1 = handle
+	motor.C0 = CFrame.new(0, -rightArm.Size.Y / 2, 0) * CFrame.Angles(-math.pi / 2, 0, 0)
+	motor.C1 = tool.Grip
+	motor.Parent = rightArm
+
+	-- Nettoyage automatique si le tool est retiré
+	local ancestryConn
+	ancestryConn = tool.AncestryChanged:Connect(function(_, parent)
+		if not parent or parent == workspace then
+			if motor.Parent then motor:Destroy() end
+			rightGrip.Enabled = true
+			if ancestryConn then ancestryConn:Disconnect() end
+		end
+	end)
+	return
 end
 
 --[[
