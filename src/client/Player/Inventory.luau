@@ -35,6 +35,7 @@ export type PlayerInventoryType = {
 
     -- Private properties
     canInteract: boolean,
+    isVisible: boolean,
     nextId: number,
     _slotConns: { [number]: RBXScriptConnection },
 
@@ -44,6 +45,7 @@ export type PlayerInventoryType = {
     RemoveItem: (self: PlayerInventoryType, tool: Tool) -> (),
     ShowInventory: (self: PlayerInventoryType, hideDelay: number) -> (),
     HideInventory: (self: PlayerInventoryType) -> (),
+    GetSlotByIndex: (self: PlayerInventoryType, index: number?) -> ItemSlot?,
 
     -- Private method
     _nextId: (self: PlayerInventoryType) -> number,
@@ -68,6 +70,7 @@ function PlayerInventory.new(player: Player): PlayerInventoryType
     self.canInteract = true
     self.nextId = 0
     self._slotConns = {}
+    self.isVisible = false
     self:HideInventory()
 
     return self
@@ -85,6 +88,7 @@ function PlayerInventory.AddItem(self: PlayerInventoryType, tool: Tool)
     toolRepresentation.Parent = newSlot.ViewportFrame:FindFirstChildOfClass("WorldModel")
     local newSlotId = self:_nextId()
     newSlot.Name = tool.Name
+    newSlot.LayoutOrder = #Utility.GetChildrenOfClass(self.SlotContainer, "ImageButton") + 1
     newSlot.Parent = self.SlotContainer
     newSlot.Visible = true
     newSlot:SetAttribute("SlotId", newSlotId)
@@ -106,30 +110,43 @@ function PlayerInventory.RemoveItem(self: PlayerInventoryType, tool: Tool)
         Utility.Warn("Warn: slot not found in: " .. tostring(self.SlotContainer), script.Name)
         return
     end
+
+    -- Nettoyage du contenu
     local worldModel: WorldModel = slot.ViewportFrame:FindFirstChildOfClass("WorldModel") :: WorldModel
     local toolRepresentation: Tool? = worldModel:FindFirstChildOfClass("Tool")
     if toolRepresentation then
         toolRepresentation:Destroy()
     end
-    local slotConn: RBXScriptConnection? = slot:GetAttribute("SlotId") and self._slotConns[slot:GetAttribute("SlotId") :: number] or nil
-    if not slotConn then
-        Utility.Warn("Warn: No connection found for the slot: " .. tostring(slot:GetDebugId()), script.Name)
-        return
+
+    -- Déconnexion
+    local slotId: number? = slot:GetAttribute("SlotId") :: number
+    if slotId and self._slotConns[slotId] then
+        self._slotConns[slotId]:Disconnect()
+        self._slotConns[slotId] = nil
     end
-    slotConn:Disconnect()
-    self._slotConns[slot:GetAttribute("SlotId") :: number] = nil
+
     slot:Destroy()
+
+    -- 🔧 Réattribuer les LayoutOrder restants
+    local index = 1
+    for _, child in ipairs(self.SlotContainer:GetChildren()) do
+        if child:IsA("ImageButton") then
+            child.LayoutOrder = index
+            index += 1
+        end
+    end
 end
 
 function PlayerInventory.ShowInventory(self: PlayerInventoryType, hideDelay: number?)
     if not self.canInteract then return end
-    local TI: TweenInfo = TweenInfo.new(1, Enum.EasingStyle.Sine)
+    local TI: TweenInfo = TweenInfo.new(.5, Enum.EasingStyle.Sine)
     local goal = {
         AnchorPoint = Vector2.new(.5, 1)
     }
     local Tween: Tween = TweenService:Create(self.SlotContainer, TI, goal)
     Tween:Play()
     self.canInteract = false
+    self.isVisible = true
     Tween.Completed:Once(function ()
         self.canInteract = true
         if hideDelay then
@@ -142,16 +159,27 @@ end
 
 function PlayerInventory.HideInventory(self: PlayerInventoryType)
     if not self.canInteract then return end
-    local TI: TweenInfo = TweenInfo.new(1, Enum.EasingStyle.Sine)
+    local TI: TweenInfo = TweenInfo.new(.5, Enum.EasingStyle.Sine)
     local goal = {
         AnchorPoint = Vector2.new(.5, 0)
     }
     local Tween: Tween = TweenService:Create(self.SlotContainer, TI, goal)
     Tween:Play()
     self.canInteract = false
+    self.isVisible = false
     Tween.Completed:Once(function ()
         self.canInteract = true
     end)
+end
+
+function PlayerInventory.GetSlotByIndex(self: PlayerInventoryType, index: number?): ItemSlot?
+    index = index or 0
+    for _, slot in ipairs(self.SlotContainer:GetChildren()) do
+        if slot:IsA("ImageButton") and slot.LayoutOrder == index then
+            return slot
+        end
+    end
+    return nil
 end
 
 -- Private methods
