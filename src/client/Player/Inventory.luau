@@ -1,3 +1,10 @@
+--[[
+	- Inventory
+	- Alienduck
+	- 16/10/2025
+	- v1.0
+]]
+
 -- Object
 local PlayerInventory = {}
 PlayerInventory.__index = PlayerInventory
@@ -10,7 +17,7 @@ local TweenService = game:GetService("TweenService")
 -- Modules
 local Utility = require(ReplicatedStorage.Shared.Utility)
 
--- Constantes
+-- Constants
 local TOOL_REPRESENTATION_FOLDER = ReplicatedStorage:FindFirstChild("ItemsRepresentation")
 local GUI: ScreenGui = ReplicatedFirst:FindFirstChild("Guis"):FindFirstChild("InventoryScreen")
 local REMOTE_EVENT_FOLDER = Utility.CreateFolder("RemoteEvents")
@@ -19,174 +26,178 @@ local UNEQUIP_TOOL_REMOTE = Utility.CreateRemoteEvent("UnequipTool", REMOTE_EVEN
 
 -- Typing
 export type ItemSlot = ImageButton & {
-    -- Childs
-    ViewportFrame: ViewportFrame,
-    BG: ImageLabel
+	ViewportFrame: ViewportFrame,
+	BG: ImageLabel,
 }
 
 export type PlayerInventoryType = {
-    -- Public properties
-    Player: Player,
-    Character: Model,
-    Screen: ScreenGui,
-    SlotContainer: CanvasGroup,
-    PlaceHolderFolder: Folder,
-    PlaceHolder: ItemSlot,
+	Player: Player,
+	Character: Model,
+	Screen: ScreenGui,
+	SlotContainer: CanvasGroup,
+	PlaceHolderFolder: Folder,
+	PlaceHolder: ItemSlot,
 
-    -- Private properties
-    canInteract: boolean,
-    isVisible: boolean,
-    nextId: number,
-    _slotConns: { [number]: RBXScriptConnection },
+	canInteract: boolean,
+	isVisible: boolean,
+	nextId: number,
+	_slotConns: { [number]: RBXScriptConnection },
 
-    -- Public methods
-    new: (player: Player) -> PlayerInventoryType,
-    AddItem: (self: PlayerInventoryType, tool: Tool) -> (),
-    RemoveItem: (self: PlayerInventoryType, tool: Tool) -> (),
-    ShowInventory: (self: PlayerInventoryType, hideDelay: number) -> (),
-    HideInventory: (self: PlayerInventoryType) -> (),
-    GetSlotByIndex: (self: PlayerInventoryType, index: number?) -> ItemSlot?,
-
-    -- Private method
-    _nextId: (self: PlayerInventoryType) -> number,
+	new: (player: Player) -> PlayerInventoryType,
+	AddItem: (self: PlayerInventoryType, tool: Tool) -> (),
+	RemoveItem: (self: PlayerInventoryType, tool: Tool) -> (),
+	ShowInventory: (self: PlayerInventoryType, hideDelay: number?) -> (),
+	HideInventory: (self: PlayerInventoryType) -> (),
+	GetSlotByIndex: (self: PlayerInventoryType, index: number?) -> ItemSlot?,
+	_nextId: (self: PlayerInventoryType) -> number,
 }
 
 -- Constructor
 function PlayerInventory.new(player: Player): PlayerInventoryType
-    local self = {} :: PlayerInventoryType
-    self = setmetatable(self, PlayerInventory)
-    
-    self.Player = player
-    self.Character = player.Character or player.CharacterAdded:Wait()
-    self.Screen = GUI:Clone() :: ScreenGui
-    if not self.Screen then
-        Utility.Error("Error: no InventoryScreen found in: " .. tostring(player.PlayerGui), script.Name)
-        return self
-    end
-    self.Screen.Parent = player.PlayerGui
-    self.SlotContainer = self.Screen:FindFirstChild("SlotContainer")
-    self.PlaceHolderFolder = self.SlotContainer:FindFirstChild("PlaceHolder")
-    self.PlaceHolder = self.PlaceHolderFolder:FindFirstChild("PlaceHolder")
-    self.canInteract = true
-    self.nextId = 0
-    self._slotConns = {}
-    self.isVisible = false
-    self:HideInventory()
+	local self = setmetatable({}, PlayerInventory)
 
-    return self
+	self.Player = player
+	self.Character = player.Character or player.CharacterAdded:Wait()
+	self.Screen = GUI:Clone() :: ScreenGui
+	if not self.Screen then
+		Utility.Error("Error: no InventoryScreen found in: " .. tostring(player.PlayerGui), script.Name)
+		return self
+	end
+
+	self.Screen.Parent = player.PlayerGui
+	self.SlotContainer = self.Screen:FindFirstChild("SlotContainer")
+	self.PlaceHolderFolder = self.SlotContainer:FindFirstChild("PlaceHolder")
+	self.PlaceHolder = self.PlaceHolderFolder:FindFirstChild("PlaceHolder")
+	self.canInteract = true
+	self.isVisible = false
+	self.nextId = 0
+	self._slotConns = {}
+
+	self:HideInventory()
+	return self
 end
 
--- Public methods
+-- Methods
 
-function PlayerInventory.AddItem(self: PlayerInventoryType, tool: Tool)
-    local newSlot: ItemSlot = self.PlaceHolder:Clone()
-    local toolRepresentation: Tool = TOOL_REPRESENTATION_FOLDER:FindFirstChild(tool.Name):Clone()
-    if not toolRepresentation then
-        Utility.Warn("Warn: No toolRepresentation found in: " .. TOOL_REPRESENTATION_FOLDER.Name, script.Name)
-        return
-    end
-    toolRepresentation.Parent = newSlot.ViewportFrame:FindFirstChildOfClass("WorldModel")
-    local newSlotId = self:_nextId()
-    newSlot.Name = tool.Name
-    newSlot.LayoutOrder = #Utility.GetChildrenOfClass(self.SlotContainer, "ImageButton") + 1
-    newSlot.Parent = self.SlotContainer
-    newSlot.Visible = true
-    newSlot:SetAttribute("SlotId", newSlotId)
-    local newSlotConn: RBXScriptConnection = newSlot.Activated:Connect(function ()
-        local clone: Tool = tool:Clone()
-        if Utility.GetToolFromCharacter(self.Character, clone.Name) then
-            UNEQUIP_TOOL_REMOTE:FireServer()
-        else
-            EQUIP_TOOL_REMOTE:FireServer(clone.Name)
-        end
-    end)
-    self._slotConns[newSlotId] = newSlotConn
-    self:ShowInventory(2)
+function PlayerInventory:AddItem(tool: Tool)
+	local newSlot: ItemSlot = self.PlaceHolder:Clone()
+	local toolRepresentation: Tool = TOOL_REPRESENTATION_FOLDER:FindFirstChild(tool.Name)
+
+	if not toolRepresentation then
+		Utility.Warn("Warn: No toolRepresentation found in: " .. TOOL_REPRESENTATION_FOLDER.Name, script.Name)
+		return
+	end
+
+	local clonedRepresentation = toolRepresentation:Clone()
+	clonedRepresentation.Parent = newSlot.ViewportFrame:FindFirstChildOfClass("WorldModel")
+
+	local newSlotId = self:_nextId()
+	newSlot.Name = tool.Name
+	newSlot.LayoutOrder = #Utility.GetChildrenOfClass(self.SlotContainer, "ImageButton") + 1
+	newSlot.Parent = self.SlotContainer
+	newSlot.Visible = true
+	newSlot:SetAttribute("SlotId", newSlotId)
+
+	local newSlotConn = newSlot.Activated:Connect(function()
+		local clone = tool:Clone()
+		if Utility.GetToolFromCharacter(self.Character, clone.Name) then
+			UNEQUIP_TOOL_REMOTE:FireServer()
+		else
+			EQUIP_TOOL_REMOTE:FireServer(clone.Name)
+		end
+	end)
+
+	self._slotConns[newSlotId] = newSlotConn
+	self:ShowInventory(2)
 end
 
-function PlayerInventory.RemoveItem(self: PlayerInventoryType, tool: Tool)
-    local slot: ItemSlot = self.SlotContainer:FindFirstChild(tool.Name) :: ItemSlot
-    if not slot then
-        Utility.Warn("Warn: slot not found in: " .. tostring(self.SlotContainer), script.Name)
-        return
-    end
+function PlayerInventory:RemoveItem(tool: Tool)
+	local slot: ItemSlot = self.SlotContainer:FindFirstChild(tool.Name)
+	if not slot then
+		Utility.Warn("Warn: slot not found in: " .. tostring(self.SlotContainer), script.Name)
+		return
+	end
 
-    -- Nettoyage du contenu
-    local worldModel: WorldModel = slot.ViewportFrame:FindFirstChildOfClass("WorldModel") :: WorldModel
-    local toolRepresentation: Tool? = worldModel:FindFirstChildOfClass("Tool")
-    if toolRepresentation then
-        toolRepresentation:Destroy()
-    end
+	-- Cleanup content
+	local worldModel = slot.ViewportFrame:FindFirstChildOfClass("WorldModel")
+	local toolRepresentation = worldModel and worldModel:FindFirstChildOfClass("Tool")
+	if toolRepresentation then
+		toolRepresentation:Destroy()
+	end
 
-    -- Déconnexion
-    local slotId: number? = slot:GetAttribute("SlotId") :: number
-    if slotId and self._slotConns[slotId] then
-        self._slotConns[slotId]:Disconnect()
-        self._slotConns[slotId] = nil
-    end
+	-- Disconnect
+	local slotId = slot:GetAttribute("SlotId")
+	if slotId and self._slotConns[slotId] then
+		self._slotConns[slotId]:Disconnect()
+		self._slotConns[slotId] = nil
+	end
 
-    slot:Destroy()
+	slot:Destroy()
 
-    -- 🔧 Réattribuer les LayoutOrder restants
-    local index = 1
-    for _, child in ipairs(self.SlotContainer:GetChildren()) do
-        if child:IsA("ImageButton") then
-            child.LayoutOrder = index
-            index += 1
-        end
-    end
+	-- Reorder LayoutOrders
+	local index = 1
+	for _, child in ipairs(self.SlotContainer:GetChildren()) do
+		if child:IsA("ImageButton") then
+			child.LayoutOrder = index
+			index += 1
+		end
+	end
 end
 
-function PlayerInventory.ShowInventory(self: PlayerInventoryType, hideDelay: number?)
-    if not self.canInteract then return end
-    local TI: TweenInfo = TweenInfo.new(.5, Enum.EasingStyle.Sine)
-    local goal = {
-        AnchorPoint = Vector2.new(.5, 1)
-    }
-    local Tween: Tween = TweenService:Create(self.SlotContainer, TI, goal)
-    Tween:Play()
-    self.canInteract = false
-    self.isVisible = true
-    Tween.Completed:Once(function ()
-        self.canInteract = true
-        if hideDelay then
-            task.delay(hideDelay, function()
-                self:HideInventory()
-            end)
-        end
-    end)
+function PlayerInventory:ShowInventory(hideDelay: number?)
+	if not self.canInteract then
+		return
+	end
+
+	local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Sine)
+	local tween = TweenService:Create(self.SlotContainer, tweenInfo, { AnchorPoint = Vector2.new(0.5, 1) })
+
+	self.canInteract = false
+	self.isVisible = true
+	tween:Play()
+
+	tween.Completed:Once(function()
+		self.canInteract = true
+		if hideDelay then
+			task.delay(hideDelay, function()
+				self:HideInventory()
+			end)
+		end
+	end)
 end
 
-function PlayerInventory.HideInventory(self: PlayerInventoryType)
-    if not self.canInteract then return end
-    local TI: TweenInfo = TweenInfo.new(.5, Enum.EasingStyle.Sine)
-    local goal = {
-        AnchorPoint = Vector2.new(.5, 0)
-    }
-    local Tween: Tween = TweenService:Create(self.SlotContainer, TI, goal)
-    Tween:Play()
-    self.canInteract = false
-    self.isVisible = false
-    Tween.Completed:Once(function ()
-        self.canInteract = true
-    end)
+function PlayerInventory:HideInventory()
+	if not self.canInteract then
+		return
+	end
+
+	local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Sine)
+	local tween = TweenService:Create(self.SlotContainer, tweenInfo, { AnchorPoint = Vector2.new(0.5, 0) })
+
+	self.canInteract = false
+	self.isVisible = false
+	tween:Play()
+
+	tween.Completed:Once(function()
+		self.canInteract = true
+	end)
 end
 
-function PlayerInventory.GetSlotByIndex(self: PlayerInventoryType, index: number?): ItemSlot?
-    index = index or 0
-    for _, slot in ipairs(self.SlotContainer:GetChildren()) do
-        if slot:IsA("ImageButton") and slot.LayoutOrder == index then
-            return slot
-        end
-    end
-    return nil
+function PlayerInventory:GetSlotByIndex(index: number?): ItemSlot?
+	index = index or 0
+	for _, slot in ipairs(self.SlotContainer:GetChildren()) do
+		if slot:IsA("ImageButton") and slot.LayoutOrder == index then
+			return slot
+		end
+	end
+	return nil
 end
 
--- Private methods
+-- Private Methods
 
-function PlayerInventory:_nextId()
-    self.nextId += 1
-    return self.nextId
+function PlayerInventory:_nextId(): number
+	self.nextId += 1
+	return self.nextId
 end
 
 return PlayerInventory

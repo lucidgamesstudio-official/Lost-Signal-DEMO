@@ -1,7 +1,14 @@
--- This is just a demo module on how you can start making your own prompt, a tip to check out the other prompt modules
+--[[
+	- CustomPrompt1
+	- Alienduck
+	- 16/10/2025
+	- v1.0
+]]
 
 -- Object
-local Module = {}
+local CustomPrompt1 = {}
+CustomPrompt1.__index = CustomPrompt1
+CustomPrompt1.activePrompts = {}
 
 -- Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -9,9 +16,16 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 -- Gui
 local CustomPrompt = ReplicatedStorage:FindFirstChild("ProxisGui"):FindFirstChild(script.Name)
 
-Module.activePrompts = {}
+-- Methods
 
-function Module:onShown(Prompt, InputType, Player)
+--[[
+	@params Prompt: ProximityPrompt
+	@params InputType: Enum.ProximityPromptInputType
+	@params Player: Player
+	@returns nil
+	@description Called when the prompt is shown. Creates and displays the UI.
+]]
+function CustomPrompt1:onShown(Prompt, InputType, Player)
 	local PromptClone = CustomPrompt:Clone()
 	local canvasGroup = PromptClone.CanvasGroup
 	local gui = canvasGroup.Frame
@@ -36,6 +50,7 @@ function Module:onShown(Prompt, InputType, Player)
 				buttonDown = true
 			end
 		end)
+
 		button.InputEnded:Connect(function(input)
 			if
 				input.UserInputType == Enum.UserInputType.Touch
@@ -48,20 +63,14 @@ function Module:onShown(Prompt, InputType, Player)
 			end
 		end)
 	end
-	Prompt.CustomPromptConf.ObjectValue.Value = PromptClone
 
-	Module.activePrompts[Prompt] = {
-		clone = PromptClone,
-		gui = gui,
-	}
+	Prompt.CustomPromptConf.ObjectValue.Value = PromptClone
+	CustomPrompt1.activePrompts[Prompt] = { clone = PromptClone, gui = gui }
 end
 
-function Module:onHidden(Prompt, Player) end
+function CustomPrompt1:onHidden(Prompt, Player) end
+function CustomPrompt1:onTriggered(Prompt, Player) end
+function CustomPrompt1:onHoldStart(Prompt, Player) end
+function CustomPrompt1:onHoldEnd(Prompt, Player) end
 
-function Module:onTriggered(Prompt, Player) end
-
-function Module:onHoldStart(Prompt, Player) end
-
-function Module:onHoldEnd(Prompt, Player) end
-
-return Module
+return CustomPrompt1

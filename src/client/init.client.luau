@@ -1,3 +1,11 @@
+--[[
+	- init.client
+	- Alienduck
+	- 16/10/2025
+	- v1.0
+	@summary Point d’entrée client. Initialise les systèmes d’inputs, d’inventaire, de prompts et les connexions du sac à dos.
+]]
+
 -- Services
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -6,38 +14,49 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Utility = require(ReplicatedStorage.Shared.Utility)
 local Inputs = require(script.Player.Inputs)
 local InventoryModule = require(script.Player.Inventory)
-local _ = require(script.ProximityPrompt.CustomPromptHandler)
+require(script.ProximityPrompt.CustomPromptHandler)
 
--- RemoteFolder
+-- Remote folder
 local REMOTE_FOLDER = Utility.CreateFolder("RemoteEvents")
 
--- Handle backpack
-local Backpack: Backpack = Players.LocalPlayer.Backpack
-local Inventory = InventoryModule.new(Players.LocalPlayer)
-Inputs.new(Inventory)
-local BackpackAddedConn: RBXScriptConnection
-local BackpackRemoveConn: RBXScriptConnection
+-- Player & backpack
+local player = Players.LocalPlayer
+local backpack = player.Backpack
+local inventory = InventoryModule.new(player)
+Inputs.new(inventory)
 
-BackpackAddedConn = Backpack.ChildAdded:Connect(function(instance: Instance)
-	local tool: Tool = instance :: Tool
-	if not tool:IsA("Tool") then
-		Utility.Warn("Warn: WTF you can't put something that isn't a tool", script.Name)
+local backpackAddedConn
+local backpackRemovedConn
+
+---------------------------------------------------------------------
+-- Backpack listeners
+---------------------------------------------------------------------
+
+backpackAddedConn = backpack.ChildAdded:Connect(function(instance)
+	if not instance:IsA("Tool") then
+		Utility.Warn("[Inventory] Non-tool instance detected in backpack. Destroying.", script.Name)
 		instance:Destroy()
 		return
 	end
-	Inventory:AddItem(tool)
+
+	inventory:AddItem(instance)
 end)
 
-BackpackRemoveConn = Backpack.ChildRemoved:Connect(function(instance: Instance)
-	local tool: Tool = instance :: Tool
-	if not tool:IsA("Tool") then
-		Utility.Warn("Warn: Okay, you are definitively cheating, I ban you.", script.Name)
-		Players.LocalPlayer:Kick("CHEATER")
+backpackRemovedConn = backpack.ChildRemoved:Connect(function(instance)
+	if not instance:IsA("Tool") then
+		Utility.Warn("[Inventory] Non-tool removal detected. Possible exploit. Kicking player.", script.Name)
+		player:Kick("CHEATER")
+		return
 	end
-	Inventory:RemoveItem(tool)
+
+	inventory:RemoveItem(instance)
 end)
+
+---------------------------------------------------------------------
+-- Register connections on server
+---------------------------------------------------------------------
 
 Utility.CreateRemoteEvent("addConnections", REMOTE_FOLDER):FireServer({
-	BackpackAddedConn,
-	BackpackRemoveConn,
+	backpackAddedConn,
+	backpackRemovedConn,
 })

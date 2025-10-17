@@ -1,47 +1,72 @@
--- Objects
+--[[
+	- CustomPromptHandler
+	- Alienduck
+	- 16/10/2025
+	- v1.0
+	@summary Gère le dispatch des modules de prompts personnalisés et les effets associés.
+]]
+
+-- Object
 local CustomPromptHandler = {}
+CustomPromptHandler.__index = CustomPromptHandler
 
 -- Services
 local PromptService = game:GetService("ProximityPromptService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
--- Player & Character
+-- Player
 local player = Players.LocalPlayer
 local character = player.Character or player.CharacterAdded:Wait()
 player.CharacterAdded:Connect(function(char)
 	character = char
 end)
 
---  Modules
+-- Modules
 local Utility = require(ReplicatedStorage.Shared.Utility)
 local PromptEffect = require(script.Parent.Modules.PromptEffect)
 local PromptFolder = script.Parent.Prompts
 
--- Active Modules Dictionary
+-- Active modules
 local activeModules = {}
 
+---------------------------------------------------------------------
+-- Private Helpers
+---------------------------------------------------------------------
+
 local function isCustom(prompt)
-	if prompt.Style == Enum.ProximityPromptStyle.Custom then
-		local conf = prompt:FindFirstChild("CustomPromptConf")
-		if conf and conf:FindFirstChild("CustomPrompt") then
-			local flag = conf.CustomPrompt
-			return flag:IsA("BoolValue") and flag.Value == true
-		end
+	if prompt.Style ~= Enum.ProximityPromptStyle.Custom then
+		return false
 	end
-	return false
+
+	local conf = prompt:FindFirstChild("CustomPromptConf")
+	if not conf then
+		return false
+	end
+
+	local customFlag = conf:FindFirstChild("CustomPrompt")
+	if not customFlag or not customFlag:IsA("BoolValue") then
+		return false
+	end
+
+	return customFlag.Value == true
 end
 
--- Core handler
 local function handle(prompt, methodName, inputType)
 	if not isCustom(prompt) then
 		return
 	end
 
-	local moduleName = prompt.CustomPromptConf.CustomPrompt.PromptName.Value
+	local conf = prompt:FindFirstChild("CustomPromptConf")
+	if not conf or not conf:FindFirstChild("CustomPrompt") then
+		return
+	end
+
+	local moduleName = conf.CustomPrompt.PromptName.Value
 	local moduleScript = PromptFolder:FindFirstChild(moduleName)
+
 	if not moduleScript then
-		warn("[CustomPrompt Handler] Prompt module not found:", moduleName)
+		warn("[CustomPromptHandler] Module not found:", moduleName)
 		return
 	end
 
@@ -56,37 +81,36 @@ local function handle(prompt, methodName, inputType)
 	end
 end
 
--- Prompt SHOWN
+---------------------------------------------------------------------
+-- PromptService Hooks
+---------------------------------------------------------------------
+
 PromptService.PromptShown:Connect(function(prompt, inputType)
 	if isCustom(prompt) then
-		if prompt.CustomPromptConf.Beam.Value then
-			PromptEffect:CreateBeam(
-				prompt.Parent,
-				character:FindFirstChild("HumanoidRootPart"),
-				prompt.CustomPromptConf
-			)
+		local conf = prompt.CustomPromptConf
+		if conf.Beam.Value then
+			PromptEffect:CreateBeam(prompt.Parent, character:FindFirstChild("HumanoidRootPart"), conf)
 		end
-		if prompt.CustomPromptConf.Highlight.Value then
-			PromptEffect:CreateHighlight(prompt.Parent, prompt.CustomPromptConf)
+		if conf.Highlight.Value then
+			PromptEffect:CreateHighlight(prompt.Parent, conf)
 		end
 	end
 	handle(prompt, "onShown", inputType)
 end)
 
--- Prompt HIDDEN
 PromptService.PromptHidden:Connect(function(prompt, inputType)
 	if isCustom(prompt) then
-		if prompt.CustomPromptConf.Beam.Value then
+		local conf = prompt.CustomPromptConf
+		if conf.Beam.Value then
 			PromptEffect:DestroyBeam(prompt.Parent, character:FindFirstChild("HumanoidRootPart"))
 		end
-		if prompt.CustomPromptConf.Highlight.Value then
-			PromptEffect:DestroyHighlight(prompt.Parent, prompt.CustomPromptConf)
+		if conf.Highlight.Value then
+			PromptEffect:DestroyHighlight(prompt.Parent, conf)
 		end
 	end
 	handle(prompt, "onHidden", inputType)
 end)
 
--- Other events
 PromptService.PromptTriggered:Connect(function(prompt, inputType)
 	handle(prompt, "onTriggered", inputType)
 end)
@@ -99,10 +123,14 @@ PromptService.PromptButtonHoldEnded:Connect(function(prompt, inputType)
 	handle(prompt, "onHoldEnd", inputType)
 end)
 
-Utility.Warn("[CustomPrompt Handler] Custom Proximity Prompt System  Made by:Madrian622 ", script.Name) -- You can delete it if you want, it won't bother me
+---------------------------------------------------------------------
+-- Initialization
+---------------------------------------------------------------------
 
-local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "CustomPrompts"
-ScreenGui.Parent = player.PlayerGui
+Utility.Warn("[CustomPromptHandler] Custom Proximity Prompt System loaded (by Madrian622)", script.Name)
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "CustomPrompts"
+gui.Parent = player:WaitForChild("PlayerGui")
 
 return CustomPromptHandler

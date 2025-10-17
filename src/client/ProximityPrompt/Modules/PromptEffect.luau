@@ -1,13 +1,47 @@
--- // this module can create beam / highlight if the prompt is visible
+--[[
+	- PromptEffect
+	- Alienduck
+	- 16/10/2025
+	- v1.0
+]]
 
-local module = {}
+-- Object
+local PromptEffect = {}
+PromptEffect.__index = PromptEffect
 
-function module:CreateBeam(Part1, Part2, Conf)
-	local fromAttachment = Instance.new("Attachment")
+-- Typing
+export type PromptConf = Configuration & {
+	Beam: BoolValue & {
+		BeamColor: Color3Value,
+		BeamTexture: StringValue,
+		BeamTransparency: NumberValue,
+		BeamWidth: NumberValue,
+	},
+	CustomPrompt: BoolValue & {
+		PromptName: StringValue,
+	},
+	Highlight: BoolValue & {
+		HighlightColor: Color3Value,
+		HighlightParent: ObjectValue,
+		HighlightTransparency: NumberValue,
+	},
+}
+
+-- Methods
+
+--[[
+	@params Part1: BasePart
+	@params Part2: BasePart
+	@params Conf: Configuration
+	@returns nil
+	@description Create a Beam between two parts with given configuration.
+]]
+function PromptEffect:CreateBeam(Part1: BasePart, Part2: BasePart, Conf: PromptConf)
+	local fromAttachment: Attachment = Instance.new("Attachment")
 	fromAttachment.Name = "BeamFrom"
 	fromAttachment.Parent = Part1
 
-	local toAttachment = Instance.new("Attachment")
+	local toAttachment: Attachment = Instance.new("Attachment")
 	toAttachment.Name = "BeamTo"
 	toAttachment.Parent = Part2
 
@@ -16,7 +50,7 @@ function module:CreateBeam(Part1, Part2, Conf)
 	beam.Attachment1 = toAttachment
 	beam.Width0 = Conf.Beam.BeamWidth.Value
 	beam.Width1 = Conf.Beam.BeamWidth.Value
-	beam.Texture = string.len(Conf.Beam.BeamTexture.Value) > 3 and Conf.Beam.BeamTexture.Value or ""
+	beam.Texture = (#Conf.Beam.BeamTexture.Value > 3) and Conf.Beam.BeamTexture.Value or ""
 	beam.Color = ColorSequence.new(Conf.Beam.BeamColor.Value)
 	beam.Transparency = NumberSequence.new(Conf.Beam.BeamTransparency.Value)
 	beam.FaceCamera = true
@@ -24,14 +58,21 @@ function module:CreateBeam(Part1, Part2, Conf)
 	beam.Parent = Part1
 end
 
-function module:DestroyBeam(Part1, Part2)
-	local beam = Part1:FindFirstChild("PromptBeam")
+--[[
+	@params Part1: BasePart
+	@params Part2: BasePart
+	@returns nil
+	@description Destroy the Beam and its attachments.
+]]
+function PromptEffect:DestroyBeam(Part1: BasePart, Part2: BasePart)
+	local beam: Instance? = Part1:FindFirstChild("PromptBeam")
 	if beam then
 		beam:Destroy()
 	end
 
-	local fromAttachment = Part1:FindFirstChild("BeamFrom")
-	local toAttachment = Part2:FindFirstChild("BeamTo")
+	local fromAttachment: Attachment? = Part1:FindFirstChild("BeamFrom") :: Attachment
+	local toAttachment: Attachment? = Part2:FindFirstChild("BeamTo") :: Attachment
+
 	if fromAttachment then
 		fromAttachment:Destroy()
 	end
@@ -40,21 +81,37 @@ function module:DestroyBeam(Part1, Part2)
 	end
 end
 
-function module:CreateHighlight(Part1, Conf)
-	local Highlight = Instance.new("Highlight")
-	Highlight.Name = "PromptHighlight"
-	Highlight.FillTransparency = 1
-	Highlight.OutlineColor = Conf.Highlight.HighlightColor.Value
-	Highlight.OutlineTransparency = Conf.Highlight.HighlightTransparency.Value
-	Highlight.Parent = Conf.Highlight.HighlightParent.Value and Conf.Highlight.HighlightParent.Value or Part1
+--[[
+	@params Part1: BasePart
+	@params Conf: Configuration
+	@returns nil
+	@description Create a Highlight effect on the part or its configured parent.
+]]
+function PromptEffect:CreateHighlight(Part1: BasePart, Conf: PromptConf)
+	local highlight: Highlight = Instance.new("Highlight")
+	highlight.Name = "PromptHighlight"
+	highlight.FillTransparency = 1
+	highlight.OutlineColor = Conf.Highlight.HighlightColor.Value
+	highlight.OutlineTransparency = Conf.Highlight.HighlightTransparency.Value
+	highlight.Parent = Conf.Highlight.HighlightParent.Value or Part1
 end
 
-function module:DestroyHighlight(Part1, Conf)
-	local Highlight = Part1:FindFirstChild("PromptHighlight") and Part1.PromptHighlight
-		or Conf.Highlight.HighlightParent.Value.PromptHighlight
-	if Highlight then
-		Highlight:Destroy()
+--[[
+	@params Part1: BasePart
+	@params Conf: Configuration
+	@returns nil
+	@description Destroy a previously created Highlight.
+]]
+function PromptEffect:DestroyHighlight(Part1: BasePart, Conf: PromptConf)
+	local highlight = Part1:FindFirstChild("PromptHighlight")
+		or (
+			Conf.Highlight.HighlightParent.Value
+			and Conf.Highlight.HighlightParent.Value:FindFirstChild("PromptHighlight")
+		)
+
+	if highlight then
+		highlight:Destroy()
 	end
 end
 
-return module
+return PromptEffect

@@ -1,48 +1,58 @@
--- // This module sets the input text and the ActionText and ObjectText
-local module = {}
+--[[
+	- PromptText
+	- Alienduck
+	- 16/10/2025
+	- v1.0
+]]
 
+-- Object
+local PromptText = {}
+PromptText.__index = PromptText
+
+-- Services
 local UserInputService = game:GetService("UserInputService")
 
+-- Constants
 local PlayStationButtonImage = {
-	["ButtonCross"] = { ID = "rbxassetid://102273970996663", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
-	["ButtonCircle"] = { ID = "rbxassetid://113464898463616", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
-	["ButtonSquare"] = { ID = "rbxassetid://79660650728784", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
-	["ButtonTriangle"] = { ID = "rbxassetid://94148253199756", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
-	["DPadLeft"] = { ID = "rbxassetid://110173040983770", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
-	["DPadRight"] = { ID = "rbxassetid://130907108249322", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
-	["DPadUp"] = { ID = "rbxassetid://135281158107893", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
-	["DPadDown"] = { ID = "rbxassetid://124627561952012", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
-	["ButtonTouchpad"] = { ID = "rbxassetid://104425278890126", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
-	["ButtonOptions"] = { ID = "rbxassetid://121059193316301", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
-	["ButtonL1"] = { ID = "rbxassetid://81969656395403", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
-	["ButtonR1"] = { ID = "rbxassetid://112320437641809", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
-	["ButtonL2"] = { ID = "rbxassetid://104369864924301", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
-	["ButtonR2"] = { ID = "rbxassetid://110790038619506", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
-	["ButtonL3"] = { ID = "rbxassetid://116504583475485", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
-	["ButtonR3"] = { ID = "rbxassetid://74618739514481", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
-	["Thumbstick1"] = { ID = "rbxassetid://139927556895762", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
-	["Thumbstick2"] = { ID = "rbxassetid://125303865660129", Offset = Vector2.new(0, 0), Size = Vector2.new(0, 0) },
+	ButtonCross = { ID = "rbxassetid://102273970996663" },
+	ButtonCircle = { ID = "rbxassetid://113464898463616" },
+	ButtonSquare = { ID = "rbxassetid://79660650728784" },
+	ButtonTriangle = { ID = "rbxassetid://94148253199756" },
+	DPadLeft = { ID = "rbxassetid://110173040983770" },
+	DPadRight = { ID = "rbxassetid://130907108249322" },
+	DPadUp = { ID = "rbxassetid://135281158107893" },
+	DPadDown = { ID = "rbxassetid://124627561952012" },
+	ButtonTouchpad = { ID = "rbxassetid://104425278890126" },
+	ButtonOptions = { ID = "rbxassetid://121059193316301" },
+	ButtonL1 = { ID = "rbxassetid://81969656395403" },
+	ButtonR1 = { ID = "rbxassetid://112320437641809" },
+	ButtonL2 = { ID = "rbxassetid://104369864924301" },
+	ButtonR2 = { ID = "rbxassetid://110790038619506" },
+	ButtonL3 = { ID = "rbxassetid://116504583475485" },
+	ButtonR3 = { ID = "rbxassetid://74618739514481" },
+	Thumbstick1 = { ID = "rbxassetid://139927556895762" },
+	Thumbstick2 = { ID = "rbxassetid://125303865660129" },
 }
 
 local XboxButtonImage = {
-	["ButtonA"] = { ID = "rbxassetid://138108315255546" },
-	["ButtonB"] = { ID = "rbxassetid://116092688517875" },
-	["ButtonX"] = { ID = "rbxassetid://112207765535717" },
-	["ButtonY"] = { ID = "rbxassetid://109533975399767" },
-	["DPadLeft"] = { ID = "rbxassetid://95925457952225" },
-	["DPadRight"] = { ID = "rbxassetid://136135140660227" },
-	["DPadUp"] = { ID = "rbxassetid://72596205752408" },
-	["DPadDown"] = { ID = "rbxassetid://84622283202589" },
-	["ButtonSelect"] = { ID = "rbxassetid://117845280307486" },
-	["ButtonStart"] = { ID = "rbxassetid://134751820429515" },
-	["ButtonLB"] = { ID = "rbxassetid://137630089826403" },
-	["ButtonRB"] = { ID = "rbxassetid://88767529786919" },
-	["ButtonLT"] = { ID = "rbxassetid://87686098194434" },
-	["ButtonRT"] = { ID = "rbxassetid://71431029624337" },
-	["ButtonLS"] = { ID = "rbxassetid://128473359374034" },
-	["ButtonRS"] = { ID = "rbxassetid://127794729042773" },
-	["Thumbstick1"] = { ID = "rbxassetid://122990010976566" },
-	["Thumbstick2"] = { ID = "rbxassetid://115042316737067" },
+	ButtonA = { ID = "rbxassetid://138108315255546" },
+	ButtonB = { ID = "rbxassetid://116092688517875" },
+	ButtonX = { ID = "rbxassetid://112207765535717" },
+	ButtonY = { ID = "rbxassetid://109533975399767" },
+	DPadLeft = { ID = "rbxassetid://95925457952225" },
+	DPadRight = { ID = "rbxassetid://136135140660227" },
+	DPadUp = { ID = "rbxassetid://72596205752408" },
+	DPadDown = { ID = "rbxassetid://84622283202589" },
+	ButtonSelect = { ID = "rbxassetid://117845280307486" },
+	ButtonStart = { ID = "rbxassetid://134751820429515" },
+	ButtonLB = { ID = "rbxassetid://137630089826403" },
+	ButtonRB = { ID = "rbxassetid://88767529786919" },
+	ButtonLT = { ID = "rbxassetid://87686098194434" },
+	ButtonRT = { ID = "rbxassetid://71431029624337" },
+	ButtonLS = { ID = "rbxassetid://128473359374034" },
+	ButtonRS = { ID = "rbxassetid://127794729042773" },
+	Thumbstick1 = { ID = "rbxassetid://122990010976566" },
+	Thumbstick2 = { ID = "rbxassetid://115042316737067" },
 }
 
 local KeyboardButtonImage = {
@@ -80,25 +90,33 @@ local KeyCodeToTextMapping = {
 	[Enum.KeyCode.F12] = "F12",
 }
 
-function module:SetText(Prompt, InputType, TextFrame, InputFrame)
+-- Methods
+
+--[[
+	@params Prompt: ProximityPrompt
+	@params InputType: Enum.ProximityPromptInputType
+	@params TextFrame: Frame
+	@params InputFrame: Frame
+	@returns nil
+	@description Sets the input text and image for the given prompt.
+]]
+function PromptText:SetText(Prompt, InputType, TextFrame, InputFrame)
 	TextFrame.ActionText.Text = Prompt.ActionText
 	TextFrame.ObjectText.Text = Prompt.ObjectText
 
 	if InputType == Enum.ProximityPromptInputType.Gamepad then
-		local GamepadTest = UserInputService:GetStringForKeyCode(Enum.KeyCode.ButtonA)
-		local buttonText = UserInputService:GetStringForKeyCode(Prompt.GamepadKeyCode)
-		if PlayStationButtonImage[GamepadTest] then
-			local img = PlayStationButtonImage[buttonText]
+		local testButton = UserInputService:GetStringForKeyCode(Enum.KeyCode.ButtonA)
+		local key = UserInputService:GetStringForKeyCode(Prompt.GamepadKeyCode)
+
+		local img
+		if PlayStationButtonImage[testButton] then
+			img = PlayStationButtonImage[key]
+		elseif XboxButtonImage[testButton] then
+			img = XboxButtonImage[key]
+		end
+
+		if img then
 			InputFrame.Frame.InputImage.Image = img.ID
-			InputFrame.Frame.InputImage.ImageRectOffset = Vector2.new(0, 0)
-			InputFrame.Frame.InputImage.ImageRectSize = Vector2.new(0, 0)
-			InputFrame.Frame.InputText.Visible = false
-			InputFrame.Frame.InputImage.Visible = true
-		elseif XboxButtonImage[GamepadTest] then
-			local img = XboxButtonImage[buttonText]
-			InputFrame.Frame.InputImage.Image = img.ID
-			InputFrame.Frame.InputImage.ImageRectOffset = Vector2.new(0, 0)
-			InputFrame.Frame.InputImage.ImageRectSize = Vector2.new(0, 0)
 			InputFrame.Frame.InputText.Visible = false
 			InputFrame.Frame.InputImage.Visible = true
 		end
@@ -107,31 +125,24 @@ function module:SetText(Prompt, InputType, TextFrame, InputFrame)
 		InputFrame.Frame.InputText.Visible = false
 		InputFrame.Frame.InputImage.Visible = true
 	else
-		local buttonTextString = UserInputService:GetStringForKeyCode(Prompt.KeyboardKeyCode)
+		local keyString = UserInputService:GetStringForKeyCode(Prompt.KeyboardKeyCode)
+		local img = KeyboardButtonImage[Prompt.KeyboardKeyCode] or KeyboardButtonIconMapping[keyString]
+		local mappedText = KeyCodeToTextMapping[Prompt.KeyboardKeyCode]
 
-		local buttonTextImage = KeyboardButtonImage[Prompt.KeyboardKeyCode]
-		if buttonTextImage == nil then
-			buttonTextImage = KeyboardButtonIconMapping[buttonTextString]
+		if mappedText then
+			keyString = mappedText
 		end
 
-		if buttonTextImage == nil then
-			local keyCodeMappedText = KeyCodeToTextMapping[Prompt.KeyboardKeyCode]
-			if keyCodeMappedText then
-				buttonTextString = keyCodeMappedText
-			end
-		end
-		if buttonTextImage then
-			InputFrame.Frame.InputImage.Image = buttonTextImage.ID
-			InputFrame.Frame.InputImage.ImageRectOffset = Vector2.new(0, 0)
-			InputFrame.Frame.InputImage.ImageRectSize = Vector2.new(0, 0)
+		if img then
+			InputFrame.Frame.InputImage.Image = img.ID
 			InputFrame.Frame.InputText.Visible = false
 			InputFrame.Frame.InputImage.Visible = true
-		elseif buttonTextString ~= nil and buttonTextString ~= "" then
-			InputFrame.Frame.InputText.Text = buttonTextString
+		elseif keyString and keyString ~= "" then
+			InputFrame.Frame.InputText.Text = keyString
 			InputFrame.Frame.InputImage.Visible = false
 			InputFrame.Frame.InputText.Visible = true
 		end
 	end
 end
 
-return module
+return PromptText

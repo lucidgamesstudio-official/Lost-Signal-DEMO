@@ -1,20 +1,24 @@
--- Inputs.luau
--- Gère les entrées clavier et les relie aux actions (sprint, crouch, inventaire, etc.)
+--[[
+	- Inputs
+	- Alienduck
+	- 16/10/2025
+	- v1.0
+]]
+
+-- Object
+local Inputs = {}
+Inputs.__index = Inputs
 
 -- Services
-local Players = game:GetService("Players")
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players: Players = game:GetService("Players")
+local ReplicatedStorage: ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Modules
 local Inventory = require(script.Parent.Inventory)
 local Utility = require(ReplicatedStorage.Shared.Utility)
 local InputActions = require(ReplicatedStorage.Shared.Utils.InputActions)
 
--- Classe
-local Inputs = {}
-Inputs.__index = Inputs
-
--- Constantes
+-- Constants
 Inputs.CONTEXTS = {
 	NORMAL = "NORMAL",
 	CINEMATIC = "CINEMATIC",
@@ -32,13 +36,36 @@ Inputs.ACTIONS = {
 	SELECT_SLOT_3 = "SELECT_SLOT_3",
 }
 
--- Constructeur
-function Inputs.new(inventory: Inventory.PlayerInventoryType)
+-- Typing
+export type InputsType = {
+	Inventory: Inventory.PlayerInventoryType?,
+	Connections: { RBXScriptConnection },
+	RemoteFolder: Folder,
+	StartSprintRemote: RemoteEvent,
+	StopSprintRemote: RemoteEvent,
+	StartCrouchRemote: RemoteEvent,
+	StopCrouchRemote: RemoteEvent,
+	ActionRemote: RemoteEvent,
+	SendConnRemote: RemoteEvent,
+	EquipToolRemote: RemoteEvent,
+	UnequipToolRemote: RemoteEvent,
+
+	new: (inventory: Inventory.PlayerInventoryType) -> InputsType,
+	SetupRemotes: (self: InputsType) -> (),
+	RegisterConnection: (self: InputsType, conn: RBXScriptConnection) -> (),
+	TryEquipSlot: (self: InputsType, slotIndex: number) -> (),
+	BindInputs: (self: InputsType) -> (),
+	Destroy: (self: InputsType) -> (),
+}
+
+-- Constructor
+function Inputs.new(inventory: Inventory.PlayerInventoryType): InputsType
 	local self = setmetatable({}, Inputs)
+
 	self.Inventory = inventory
 	self.Connections = {}
-
 	self.RemoteFolder = Utility.CreateFolder("RemoteEvents")
+
 	self:SetupRemotes()
 	self:BindInputs()
 	InputActions.EnableContext(Inputs.CONTEXTS.NORMAL)
@@ -46,7 +73,9 @@ function Inputs.new(inventory: Inventory.PlayerInventoryType)
 	return self
 end
 
--- Création des RemoteEvents
+-- Methods
+
+-- Create RemoteEvents
 function Inputs:SetupRemotes()
 	self.StartSprintRemote = Utility.CreateRemoteEvent("startSprint", self.RemoteFolder)
 	self.StopSprintRemote = Utility.CreateRemoteEvent("stopSprint", self.RemoteFolder)
@@ -58,32 +87,33 @@ function Inputs:SetupRemotes()
 	self.UnequipToolRemote = Utility.CreateRemoteEvent("UnequipTool", self.RemoteFolder)
 end
 
--- Enregistrement d'une connexion
-function Inputs:RegisterConnection(conn)
+-- Register a connection
+function Inputs:RegisterConnection(conn: RBXScriptConnection)
 	table.insert(self.Connections, conn)
 end
 
--- Helper pour tenter d’équiper un slot
+-- Try to equip a slot
 function Inputs:TryEquipSlot(slotIndex: number)
-	if not self.Inventory then return end
-
-	local container = self.Inventory.SlotContainer
-	if not container then return end
+	if not self.Inventory then
+		return
+	end
 
 	local slot = self.Inventory:GetSlotByIndex(slotIndex)
 	if not slot then
-		Utility.Warn("Warn: no slot found with index: " .. tostring(slotIndex), script.Name)
-		return -- slot inexistant
+		Utility.Warn(`Warn: no slot found with index: {slotIndex}`, script.Name)
+		return
 	end
 
-	local toolName = slot.Name
-	local player = Players.LocalPlayer
-	local character = player.Character
+	local player: Player = Players.LocalPlayer
+	local character: Model? = player.Character
+	if not character then
+		return
+	end
 
-	if not character then return end
+	local toolName: string = slot.Name
+	local equipped = Utility.GetToolFromCharacter(character, toolName)
 
-	-- Si le joueur a déjà ce tool équipé, on le retire
-	if Utility.GetToolFromCharacter(character, toolName) then
+	if equipped then
 		self.UnequipToolRemote:FireServer()
 		self.EquipToolRemote:FireServer(toolName)
 	else
@@ -91,11 +121,11 @@ function Inputs:TryEquipSlot(slotIndex: number)
 	end
 end
 
--- Liaison des touches
+-- Bind all inputs
 function Inputs:BindInputs()
-	local player = Players.LocalPlayer
-	local function hasCharacter()
-		return player and player.Character
+	local player: Player = Players.LocalPlayer
+	local function hasCharacter(): boolean
+		return player and player.Character ~= nil
 	end
 
 	-- Sprint
@@ -140,7 +170,7 @@ function Inputs:BindInputs()
 		end
 	end))
 
-	-- Inventaire
+	-- Inventory
 	local invent = InputActions.GetAction(self.CONTEXTS.NORMAL, self.ACTIONS.INVENT)
 	invent.KeyboardBinding.KeyCode = Enum.KeyCode.Tab
 
@@ -154,21 +184,21 @@ function Inputs:BindInputs()
 		end
 	end))
 
-	-- Unequip (clic droit)
+	-- Unequip (right click)
 	local unequip = InputActions.GetAction(self.CONTEXTS.NORMAL, self.ACTIONS.UEQUIP)
 	unequip.KeyboardBinding.KeyCode = Enum.KeyCode.MouseRightButton
 
 	self:RegisterConnection(unequip.Pressed:Connect(function()
-		if hasCharacter() and Utility.IsHoldingTool(hasCharacter()) then
+		if hasCharacter() and Utility.IsHoldingTool(player.Character :: Model) then
 			self.UnequipToolRemote:FireServer()
 		end
 	end))
 
-	-- Raccourcis slots (touches & ~ ")
-	local slotBindings = {
-		[1] = Enum.KeyCode.One, 	-- &
-		[2] = Enum.KeyCode.Two,  	-- ~
-		[3] = Enum.KeyCode.Three, 	-- "
+	-- Slot shortcuts (1, 2, 3)
+	local slotBindings: { [number]: Enum.KeyCode } = {
+		[1] = Enum.KeyCode.One,
+		[2] = Enum.KeyCode.Two,
+		[3] = Enum.KeyCode.Three,
 	}
 
 	for index, keycode in ipairs(slotBindings) do
@@ -182,11 +212,10 @@ function Inputs:BindInputs()
 		end))
 	end
 
-	-- Envoi des connexions au serveur
 	self.SendConnRemote:FireServer(self.Connections)
 end
 
--- Nettoyage des connexions
+-- Destroy all connections
 function Inputs:Destroy()
 	for _, conn in ipairs(self.Connections) do
 		if conn.Disconnect then
