@@ -1,24 +1,39 @@
--- Object
-local InitObjects = {}
+--[[
+	- InitObject
+	- Alienduck
+	- 16/10/2025
+	- v1.0
+	@summary Initialise les objets taggés par CollectionService (portes, etc.) et crée leurs instances de classe.
+]]
 
 -- Services
-local CollectionService: CollectionService = game:GetService("CollectionService")
+local CollectionService = game:GetService("CollectionService")
 
 -- Modules
-local MetaldDoorClass = require(script.Parent.MetaldDoorClass)
+local MetalDoorClass = require(script.Parent.MetaldDoorClass)
 
--- Doors
-local MetalDoorsInstance: { Instance } = CollectionService:GetTagged("MetalDoor")
-local MetalDoors: { MetaldDoorClass.MetalDoorType } = {}
+-- Object container
+local InitObjects = {}
 
-for _, door in ipairs(MetalDoorsInstance) do
+---------------------------------------------------------------------
+-- MetalDoors initialization
+---------------------------------------------------------------------
+
+local metalDoorInstances = CollectionService:GetTagged("MetalDoor")
+local metalDoors = {}
+
+for _, door in ipairs(metalDoorInstances) do
 	if door:IsA("Model") then
-		local newMetalDoor = MetaldDoorClass.new(door)
-		newMetalDoor:Init()
-		table.insert(MetalDoors, newMetalDoor)
+		local newDoor = MetalDoorClass.new(door)
+		newDoor:Init()
+		table.insert(metalDoors, newDoor)
 	end
 end
 
-InitObjects["MetalDoors"] = MetalDoorsInstance
+InitObjects.MetalDoors = metalDoors
+
+---------------------------------------------------------------------
+-- Return
+---------------------------------------------------------------------
 
 return InitObjects

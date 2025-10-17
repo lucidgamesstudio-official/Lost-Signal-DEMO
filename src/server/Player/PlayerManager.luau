@@ -1,44 +1,68 @@
-local PlayerManager = {}
+--[[
+	- PlayerManager
+	- Alienduck
+	- 16/10/2025
+	- v1.0
+	@summary Gère les instances de PlayerClass et les appels distants associés.
+]]
 
+---------------------------------------------------------------------
 -- Services
+---------------------------------------------------------------------
+
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
+---------------------------------------------------------------------
 -- Modules
+---------------------------------------------------------------------
+
 local Utility = require(ReplicatedStorage.Shared.Utility)
 local PlayerClass = require(script.Parent.PlayerClass)
 
+---------------------------------------------------------------------
 -- Constantes
+---------------------------------------------------------------------
+
 local REMOTE_EVENT_FOLDER = Utility.CreateFolder("RemoteEvents")
 
+---------------------------------------------------------------------
 -- Variables
-local Players: { [number]: PlayerClass.PlayerClassType } = {}
+---------------------------------------------------------------------
 
---=============================
--- HELPERS
---=============================
+local Players = {}
 
-local function playerUnfound(player: Player): string
-	return string.format("No player with id: %s", tostring(player.UserId))
+---------------------------------------------------------------------
+-- Helpers
+---------------------------------------------------------------------
+
+local function playerUnfound(player)
+	return "No player with id: " .. tostring(player.UserId)
 end
 
---=============================
--- FUNCTIONS
---=============================
+---------------------------------------------------------------------
+-- Classe
+---------------------------------------------------------------------
 
-function PlayerManager.addPlayer(player: Player)
-	local newPlayerClass: PlayerClass.PlayerClassType = PlayerClass.new(player) :: PlayerClass.PlayerClassType
-	if newPlayerClass then
-		print("Add player: " .. player.Name .. "in Players")
-		Players[player.UserId] = newPlayerClass
+local PlayerManager = {}
+
+---------------------------------------------------------------------
+-- Méthodes principales
+---------------------------------------------------------------------
+
+function PlayerManager.addPlayer(player)
+	local newPlayer = PlayerClass.new(player)
+	if newPlayer then
+		print("Add player: " .. player.Name .. " in Players")
+		Players[player.UserId] = newPlayer
 	end
 	print(Players)
 end
 
-function PlayerManager.removePlayer(player: Player)
+function PlayerManager.removePlayer(player)
 	Players[player.UserId] = nil
 end
 
-function PlayerManager.getPlayer(player: Player): PlayerClass.PlayerClassType
+function PlayerManager.getPlayer(player)
 	return Players[player.UserId]
 end
 
@@ -46,10 +70,12 @@ function PlayerManager.getAll()
 	return Players
 end
 
--- Remotes | Bindables
+---------------------------------------------------------------------
+-- Remote Events
+---------------------------------------------------------------------
 
-Utility.CreateRemoteEvent("spawnPlayer", REMOTE_EVENT_FOLDER, function(player: Player)
-	local playerObj: PlayerClass.PlayerClassType = PlayerManager.getPlayer(player)
+Utility.CreateRemoteEvent("spawnPlayer", REMOTE_EVENT_FOLDER, function(player)
+	local playerObj = PlayerManager.getPlayer(player)
 	if not playerObj then
 		Utility.Warn(playerUnfound(player), script.Name)
 		return
@@ -58,23 +84,19 @@ Utility.CreateRemoteEvent("spawnPlayer", REMOTE_EVENT_FOLDER, function(player: P
 	playerObj:Init()
 end)
 
-Utility.CreateRemoteEvent(
-	"addConnections",
-	REMOTE_EVENT_FOLDER,
-	function(player: Player, connections: { RBXScriptConnection | thread })
-		local playerObj: PlayerClass.PlayerClassType = PlayerManager.getPlayer(player)
-		if not playerObj then
-			Utility.Warn(playerUnfound(player), script.Name)
-			return
-		end
-		for _, conn in ipairs(connections) do
-			playerObj:AddConnection(conn)
-		end
+Utility.CreateRemoteEvent("addConnections", REMOTE_EVENT_FOLDER, function(player, connections)
+	local playerObj = PlayerManager.getPlayer(player)
+	if not playerObj then
+		Utility.Warn(playerUnfound(player), script.Name)
+		return
 	end
-)
+	for _, conn in ipairs(connections) do
+		playerObj:AddConnection(conn)
+	end
+end)
 
-Utility.CreateRemoteEvent("startSprint", REMOTE_EVENT_FOLDER, function(player: Player)
-	local playerObj: PlayerClass.PlayerClassType = PlayerManager.getPlayer(player)
+Utility.CreateRemoteEvent("startSprint", REMOTE_EVENT_FOLDER, function(player)
+	local playerObj = PlayerManager.getPlayer(player)
 	if not playerObj then
 		Utility.Warn(playerUnfound(player), script.Name)
 		return
@@ -82,8 +104,8 @@ Utility.CreateRemoteEvent("startSprint", REMOTE_EVENT_FOLDER, function(player: P
 	playerObj:StartRun()
 end)
 
-Utility.CreateRemoteEvent("stopSprint", REMOTE_EVENT_FOLDER, function(player: Player)
-	local playerObj: PlayerClass.PlayerClassType = PlayerManager.getPlayer(player)
+Utility.CreateRemoteEvent("stopSprint", REMOTE_EVENT_FOLDER, function(player)
+	local playerObj = PlayerManager.getPlayer(player)
 	if not playerObj then
 		Utility.Warn(playerUnfound(player), script.Name)
 		return
@@ -91,8 +113,8 @@ Utility.CreateRemoteEvent("stopSprint", REMOTE_EVENT_FOLDER, function(player: Pl
 	playerObj:StopRun()
 end)
 
-Utility.CreateRemoteEvent("AddItem", REMOTE_EVENT_FOLDER, function(player: Player, toolName: string)
-	local playerObj: PlayerClass.PlayerClassType = PlayerManager.getPlayer(player)
+Utility.CreateRemoteEvent("AddItem", REMOTE_EVENT_FOLDER, function(player, toolName)
+	local playerObj = PlayerManager.getPlayer(player)
 	if not playerObj then
 		Utility.Warn(playerUnfound(player), script.Name)
 		return
@@ -100,8 +122,8 @@ Utility.CreateRemoteEvent("AddItem", REMOTE_EVENT_FOLDER, function(player: Playe
 	playerObj:AddItem(toolName)
 end)
 
-Utility.CreateRemoteEvent("EquipTool", REMOTE_EVENT_FOLDER, function(player: Player, toolName: string)
-	local playerObj: PlayerClass.PlayerClassType = PlayerManager.getPlayer(player)
+Utility.CreateRemoteEvent("EquipTool", REMOTE_EVENT_FOLDER, function(player, toolName)
+	local playerObj = PlayerManager.getPlayer(player)
 	if not playerObj then
 		Utility.Warn(playerUnfound(player), script.Name)
 		return
@@ -109,13 +131,17 @@ Utility.CreateRemoteEvent("EquipTool", REMOTE_EVENT_FOLDER, function(player: Pla
 	playerObj:EquipTool(toolName)
 end)
 
-Utility.CreateRemoteEvent("UnequipTool", REMOTE_EVENT_FOLDER, function(player: Player)
-	local playerObj: PlayerClass.PlayerClassType = PlayerManager.getPlayer(player)
+Utility.CreateRemoteEvent("UnequipTool", REMOTE_EVENT_FOLDER, function(player)
+	local playerObj = PlayerManager.getPlayer(player)
 	if not playerObj then
 		Utility.Warn(playerUnfound(player), script.Name)
 		return
 	end
 	playerObj:UnequipTool()
 end)
+
+---------------------------------------------------------------------
+-- Retour
+---------------------------------------------------------------------
 
 return PlayerManager

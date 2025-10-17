@@ -1,30 +1,37 @@
--- Classe
-local PlayerClass = {}
-PlayerClass.__index = PlayerClass
+--[[
+	- PlayerClass
+	- Alienduck
+	- 16/10/2025
+	- v1.0
+	@summary Gestion du joueur : stamina, équipement et état de déplacement.
+]]
 
 -- Services
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
-local Utility = require(ReplicatedStorage.Shared.Utility)
 
 -- Modules
+local Utility = require(ReplicatedStorage.Shared.Utility)
 
+---------------------------------------------------------------------
 -- Constantes
--- Stamina
+---------------------------------------------------------------------
+
 local STAMINA_DRAIN_PER_STUD = 0.2
-local STAMINA_REGEN_RATE = 2 -- points régénérés toutes les 0.5s
+local STAMINA_REGEN_RATE = 2
 local REGEN_INTERVAL = 0.5
 local MIN_STAMINA = 0
 local MAX_STAMINA = 100
 
--- Player Params
 local PLAYER_WALK_SPEED = 16
 local PLAYER_RUN_SPEED = 24
 
--- Folders
 local ITEM_FOLDER = Utility.CreateFolder("Items")
 
+---------------------------------------------------------------------
 -- Types
+---------------------------------------------------------------------
+
 export type BetterThread = thread & {
 	_stopped: boolean,
 }
@@ -65,51 +72,69 @@ export type PlayerStateEnumType = {
 	Run: number,
 }
 
+---------------------------------------------------------------------
 -- Enums
+---------------------------------------------------------------------
+
 local PlayerStateEnum = table.freeze({
 	Idle = 1,
 	Walk = 2,
 	Run = 3,
 })
+
+---------------------------------------------------------------------
+-- Classe
+---------------------------------------------------------------------
+
+local PlayerClass = {}
+PlayerClass.__index = PlayerClass
 PlayerClass.State = PlayerStateEnum
 
--- Constructor
-function PlayerClass.new(player: Player): PlayerClassType?
+---------------------------------------------------------------------
+-- Constructeur
+---------------------------------------------------------------------
+
+function PlayerClass.new(player)
 	local self = setmetatable({}, PlayerClass)
-	local typedSelf: PlayerClassType = self
 
-	typedSelf.player = player
+	self.player = player
+	self.stamina = 100
+	self.state = PlayerStateEnum.Idle
 
-	typedSelf.stamina = 100
-	typedSelf.state = PlayerStateEnum.Idle
+	self._playerRunConn = nil
+	self._playerStaminaRegenThread = nil
+	self._playerDiedConn = nil
+	self._allConnections = {}
 
-	-- Private
-	typedSelf._playerRunConn = nil
-	typedSelf._playerStaminaRegenThread = nil
-	typedSelf._playerDiedConn = nil
-	typedSelf._allConnections = {}
-
-	return typedSelf
+	return self
 end
 
-function PlayerClass.Init(self: PlayerClassType)
+---------------------------------------------------------------------
+-- Initialisation
+---------------------------------------------------------------------
+
+function PlayerClass:Init()
 	self.player:LoadCharacter()
-	self.character = self.player.Character or self.player.CharacterAdded:Wait() :: Model
+	self.character = self.player.Character or self.player.CharacterAdded:Wait()
 	if not self.character then
 		Utility.Warn("No Character found in " .. self.player.Name, script.Name)
 		return
 	end
-	self.humanoid = self.character:FindFirstChildOfClass("Humanoid") :: Humanoid
+
+	self.humanoid = self.character:FindFirstChildOfClass("Humanoid")
 	if not self.humanoid then
-		Utility.Warn("No humanoid found in " .. self.player.Name, script.Name)
+		Utility.Warn("No Humanoid found in " .. self.player.Name, script.Name)
 		return
 	end
-	self.humanoid.WalkSpeed = PLAYER_WALK_SPEED
-	self.HumanoidRootPart = self.character:WaitForChild("HumanoidRootPart") :: BasePart
+
+	self.HumanoidRootPart = self.character:WaitForChild("HumanoidRootPart")
 	if not self.HumanoidRootPart then
 		Utility.Warn("No HumanoidRootPart found in " .. self.player.Name, script.Name)
 		return
 	end
+
+	self.humanoid.WalkSpeed = PLAYER_WALK_SPEED
+
 	self._playerDiedConn = self.humanoid.Died:Connect(function()
 		if self._playerRunConn then
 			self._playerRunConn:Disconnect()
@@ -121,8 +146,11 @@ function PlayerClass.Init(self: PlayerClassType)
 	end)
 end
 
--- Démarre la consommation de stamina
-function PlayerClass.StartRun(self: PlayerClassType)
+---------------------------------------------------------------------
+-- Course et stamina
+---------------------------------------------------------------------
+
+function PlayerClass:StartRun()
 	local character = self.player.Character
 	if not character then
 		return
@@ -135,12 +163,9 @@ function PlayerClass.StartRun(self: PlayerClassType)
 
 	local lastPos = root.Position
 
-	-- stop éventuelle regen en cours
 	if self._playerStaminaRegenThread then
 		self:RemoveConnection(self._playerStaminaRegenThread)
 	end
-
-	-- Jamais censé arriver
 	if self._playerRunConn then
 		self:RemoveConnection(self._playerRunConn)
 	end
@@ -153,6 +178,7 @@ function PlayerClass.StartRun(self: PlayerClassType)
 			self._playerRunConn = nil
 			return
 		end
+
 		self.humanoid.WalkSpeed = PLAYER_RUN_SPEED
 
 		local currentPos = root.Position
@@ -165,25 +191,25 @@ function PlayerClass.StartRun(self: PlayerClassType)
 			self:StopRun()
 		end
 	end)
+
 	if self._playerRunConn then
 		self:AddConnection(self._playerRunConn)
 	end
 end
 
-function PlayerClass.StopRun(self: PlayerClassType)
+function PlayerClass:StopRun()
 	if self._playerRunConn then
 		self:RemoveConnection(self._playerRunConn)
 	end
+
 	self.humanoid.WalkSpeed = PLAYER_WALK_SPEED
 
-	-- stop le thread précédent s’il existe
 	if self._playerStaminaRegenThread then
 		self._playerStaminaRegenThread._stopped = true
 		self._playerStaminaRegenThread = nil
 	end
 
-	-- lance un thread qui régénère la stamina progressivement
-	local regenThread: BetterThread = {} :: BetterThread
+	local regenThread = { _stopped = false }
 	self._playerStaminaRegenThread = regenThread
 	self:AddConnection(regenThread)
 
@@ -196,34 +222,44 @@ function PlayerClass.StopRun(self: PlayerClassType)
 	end)
 end
 
-function PlayerClass.AddItem(self: PlayerClassType, toolName: string)
-	local tool: Tool = Utility.GetToolByName(toolName, ITEM_FOLDER)
+---------------------------------------------------------------------
+-- Gestion d'items
+---------------------------------------------------------------------
+
+function PlayerClass:AddItem(toolName): nil
+	local tool = Utility.GetToolByName(toolName, ITEM_FOLDER)
 	if not tool then
-		return Utility.Error(`Warn: item {toolName} does not exist`, script.Name)
+		return Utility.Error("Warn: item " .. toolName .. " does not exist", script.Name)
 	end
-	local clone: Tool = tool:Clone()
+
+	local clone = tool:Clone()
 	clone.Parent = self.player.Backpack
 	return
 end
 
-function PlayerClass.EquipTool(self: PlayerClassType, toolName: string)
+function PlayerClass:EquipTool(toolName): nil
 	local tool = self.player.Backpack:FindFirstChild(toolName)
 	if not tool then
 		Utility.DebugItem(tool)
 		return Utility.Warn("Warn: No tool found with the name: " .. toolName, script.Name)
 	end
-	return self.humanoid:EquipTool(tool)
+	self.humanoid:EquipTool(tool)
+	return
 end
 
-function PlayerClass.UnequipTool(self: PlayerClassType)
+function PlayerClass:UnequipTool()
 	self.humanoid:UnequipTools()
 end
 
-function PlayerClass.AddConnection(self: PlayerClassType, conn: RBXScriptConnection | thread)
+---------------------------------------------------------------------
+-- Connexions
+---------------------------------------------------------------------
+
+function PlayerClass:AddConnection(conn)
 	table.insert(self._allConnections, conn)
 end
 
-function PlayerClass.RemoveConnection(self: PlayerClassType, conn: RBXScriptConnection | any)
+function PlayerClass:RemoveConnection(conn)
 	local index = table.find(self._allConnections, conn)
 	if not index then
 		return
@@ -237,5 +273,9 @@ function PlayerClass.RemoveConnection(self: PlayerClassType, conn: RBXScriptConn
 
 	table.remove(self._allConnections, index)
 end
+
+---------------------------------------------------------------------
+-- Retour
+---------------------------------------------------------------------
 
 return PlayerClass
