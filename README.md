@@ -238,11 +238,22 @@ Pour implémenter votre ProximityPrompt personnalisé, suivez ces étapes de con
    - **Nommage Important :** Le nom de votre GUI **doit** correspondre exactement au nom du module de prompt que vous souhaitez utiliser. Par exemple, si votre module s'appelle `CustomPrompt77.luau`, nommez votre `GUI` '**CustomPrompt77**'.
    - Ce nom doit également être défini dans le PromptName de la `StringValue` mentionnée à l'étape 2.2 pour que le système puisse l'identifier et l'afficher correctement.
 
+### TODO
+
+- [ ] Ajouter un proxi par défaut pour les BillGui
+- [ ] Ajouter un prox par défaut pour les SurfaceGui
+- [ ] Modification de l'occlusion
+- [ ] Meilleure vérification des erreurs
+
 ## Inventory
 
-```mermaid
+_L'inventaire est propre au jeu, le copier serait comprendre qu'il suit les limitations imposées par le script_
+L'inventaire apparait pour 2 raisons:
 
-```
+- Le joueur appuie sur `tab`
+- Un objet est ajouté/retiré de l'inventaire
+
+Quand l'inventaire est présent par le joueur il est constamment présent, sinon, il se retire automatiquement au bout de 2 secondes.
 
 ## Lampe
 
@@ -251,6 +262,8 @@ Pour implémenter votre ProximityPrompt personnalisé, suivez ces étapes de con
 ## Loading screen
 
 ### TODO
+
+- [ ] Ajouter un loading par défaut dans les assets
 
 ---
 
