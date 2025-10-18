@@ -12,6 +12,9 @@
     "ReplicatedStorage": {
       "Shared": {
         "$path": "src/shared"
+      },
+      "ProxisGui": {
+        "$path": "assets/CustomPrompt.rbxmx"
       }
     },
 
