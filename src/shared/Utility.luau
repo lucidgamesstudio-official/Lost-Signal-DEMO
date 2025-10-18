@@ -13,6 +13,7 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local TestService = game:GetService("TestService")
 
 ---------------------------------------------------------------------
 -- Objet principal
@@ -24,15 +25,22 @@ local Utility = {}
 -- LOGS
 ---------------------------------------------------------------------
 
+-- Information (Studio uniquement)
+function Utility.Info(message: string, scriptCall: string?)
+	if RunService:IsStudio() then
+		TestService:Message(`[INFO]: {message} | [FROM]: {scriptCall or script.Name}`)
+	end
+end
+
 -- Avertissement (Studio uniquement)
-function Utility.Warn(message, scriptCall)
+function Utility.Warn(message: string, scriptCall: string?)
 	if RunService:IsStudio() then
 		warn(`{scriptCall or script.Name}: {message}.`)
 	end
 end
 
 -- Erreur (Studio uniquement)
-function Utility.Error(message, scriptCall)
+function Utility.Error(message: string, scriptCall: string?)
 	if RunService:IsStudio() then
 		error(`{scriptCall or script.Name}: {message}.`)
 	end
@@ -43,7 +51,7 @@ end
 ---------------------------------------------------------------------
 
 -- Crée un dossier s’il n’existe pas
-function Utility.CreateFolder(name, parent)
+function Utility.CreateFolder(name: string, parent: Instance?)
 	local targetParent = parent or ReplicatedStorage
 	local folder = targetParent:FindFirstChild(name)
 	if folder and folder:IsA("Folder") then
@@ -56,7 +64,7 @@ function Utility.CreateFolder(name, parent)
 end
 
 -- Crée ou récupère un RemoteEvent
-function Utility.CreateRemoteEvent(name, parent, callback)
+function Utility.CreateRemoteEvent(name: string, parent: Instance?, callback: ({}) -> ()?): RemoteEvent
 	local targetParent = parent or ReplicatedStorage
 	local remote = targetParent:FindFirstChild(name)
 
@@ -91,7 +99,7 @@ function Utility.CreateRemoteEvent(name, parent, callback)
 end
 
 -- Crée ou récupère un RemoteFunction
-function Utility.CreateRemoteFunction(name, parent, callback)
+function Utility.CreateRemoteFunction(name: string, parent: Instance?, callback: ({}) -> ()?): RemoteFunction
 	local targetParent = parent or ReplicatedStorage
 	local remote = targetParent:FindFirstChild(name)
 
@@ -122,7 +130,7 @@ function Utility.CreateRemoteFunction(name, parent, callback)
 end
 
 -- Crée ou récupère un BindableEvent
-function Utility.CreateBindableEvent(name, parent, callback)
+function Utility.CreateBindableEvent(name: string, parent: Instance?, callback: ({}) -> ()?): BindableEvent
 	local targetParent = parent or ReplicatedStorage
 	local existing = targetParent:FindFirstChild(name)
 	if existing then
@@ -139,7 +147,7 @@ function Utility.CreateBindableEvent(name, parent, callback)
 end
 
 -- Crée ou récupère un BindableFunction
-function Utility.CreateBindableFunction(name, parent, callback)
+function Utility.CreateBindableFunction(name: string, parent: Instance?, callback: ({}) -> ()?): BindableFunction
 	local targetParent = parent or ReplicatedStorage
 	local existing = targetParent:FindFirstChild(name)
 	if existing then
@@ -160,8 +168,8 @@ end
 ---------------------------------------------------------------------
 
 -- Retourne les enfants d’un type donné
-function Utility.GetChildrenOfClass(parent, childType)
-	local result = {}
+function Utility.GetChildrenOfClass<T>(parent: Instance, childType: string?): { T }
+	local result: { T } = {}
 	childType = childType or typeof(parent)
 	for _, child in ipairs(parent:GetChildren()) do
 		if child:IsA(childType) then
@@ -172,7 +180,7 @@ function Utility.GetChildrenOfClass(parent, childType)
 end
 
 -- Retourne un outil depuis le personnage
-function Utility.GetToolFromCharacter(character, name)
+function Utility.GetToolFromCharacter(character: Model, name: string?): Tool?
 	local tool = character:FindFirstChildWhichIsA("Tool")
 	if not tool and name then
 		tool = character:FindFirstChild(name)
@@ -181,7 +189,7 @@ function Utility.GetToolFromCharacter(character, name)
 end
 
 -- Vérifie si le joueur tient un outil
-function Utility.IsHoldingTool(character)
+function Utility.IsHoldingTool(character: Model): boolean
 	for _, child in ipairs(character:GetChildren()) do
 		if child:IsA("Tool") then
 			return true
@@ -191,13 +199,13 @@ function Utility.IsHoldingTool(character)
 end
 
 -- Récupère un outil depuis le stockage
-function Utility.GetToolByName(toolName, parent)
+function Utility.GetToolByName(toolName: string, parent: Instance?): Tool?
 	local targetParent = parent or ReplicatedStorage
 	return targetParent:FindFirstChild(toolName)
 end
 
 -- Ajoute un Motor6D temporaire entre la main droite et le handle
-function Utility.AddMotorToTool(tool): nil
+function Utility.AddMotorToTool(tool: Tool): nil
 	local character = tool.Parent
 	if not character or not Players:GetPlayerFromCharacter(character) then
 		return Utility.Warn("no valid character found", script.Name)
@@ -254,22 +262,22 @@ end
 ---------------------------------------------------------------------
 
 -- Distance entre deux points
-function Utility.GetDistance(pos1, pos2)
+function Utility.GetDistance(pos1: Vector3, pos2: Vector3): number
 	return (pos1 - pos2).Magnitude
 end
 
 -- Récupère le shirt d’un personnage
-function Utility.GetShirtFromCharacter(character)
+function Utility.GetShirtFromCharacter(character: Model): Shirt?
 	return character:FindFirstChildWhichIsA("Shirt")
 end
 
 -- Récupère le pantalon d’un personnage
-function Utility.GetPantsFromCharacter(character)
+function Utility.GetPantsFromCharacter(character: Model): Pants?
 	return character:FindFirstChildWhichIsA("Pants")
 end
 
 -- Debug : affiche le type et la valeur d’un élément
-function Utility.DebugItem(item)
+function Utility.DebugItem<T>(item: T)
 	print(`typeof: {typeof(item)} | item: {item}`)
 end
 
