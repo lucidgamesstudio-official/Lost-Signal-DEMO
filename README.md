@@ -304,16 +304,6 @@ Pour implémenter votre ProximityPrompt personnalisé, suivez ces étapes de con
    - **Nommage Important :** Le nom de votre GUI **doit** correspondre exactement au nom du module de prompt que vous souhaitez utiliser. Par exemple, si votre module s'appelle `CustomPrompt77.luau`, nommez votre `GUI` '**CustomPrompt77**'.
    - Ce nom doit également être défini dans le PromptName de la `StringValue` mentionnée à l'étape 2.2 pour que le système puisse l'identifier et l'afficher correctement.
 
-## Inventory
-
-_L'inventaire est propre au jeu, le copier serait comprendre qu'il suit les limitations imposées par le script_
-L'inventaire apparait pour 2 raisons:
-
-- Le joueur appuie sur `tab`
-- Un objet est ajouté/retiré de l'inventaire
-
-Quand l'inventaire est présent par le joueur il est constamment présent, sinon, il se retire automatiquement au bout de 2 secondes.
-
 ## Lampe
 
 ## Loading screen
@@ -368,17 +358,49 @@ Pour avoir:
 
 - Soit vous pouvez juste prendre le fichier `default-loading-screen.rbxmx` et le "drag and drop" (glisser déposer) directement dans un dossier nommé **Guis** dans `ReplicatedFirst`.
 
+## Inventory
+
+_L'inventaire est propre au jeu, le copier serait comprendre qu'il suit les limitations imposées par le script_
+L'inventaire apparait pour 2 raisons:
+
+- Le joueur appuie sur `tab`
+  - Dans ce cas l'inventaire se retire en pressant à nouveau `tab`
+- Un objet est ajouté/retiré de l'inventaire
+  - Dans ce cas l'inventaire se retire automatiquement
+
+### Activation
+
+_Le processus ressemble beaucoup à celui du loading screen pas d'inquiétude !_
+
+Un peu comme pour le loading screen il y a déjà un `ScreenGui` par défaut (de rien ^^) donc vous avez juste à rajouter (si vous l'avez fait pour le loading screen) ceci:
+
+```json
+"ReplicatedFirst": {
+  "Loader": {
+	"$path": "src/loader"
+  },
+  "Guis": {
+	"$className": "Folder",
+	"LoadingScreen": {
+	  "$path": "assets/default-loading-screen.rbxmx"
+	},
+	"InventoryScreen": {
+	  "$path": "assets/default-inventory-screen.rbxmx"
+	}
+  }
+},
+```
+
+Si vous ne voulez pas du `default-loading-screen.rbxmx` vous avez juste à supprimer sa partie.
+
 <h2 style="text-align: center;"> TODO</h2>
 
 - [x] Expliquer la mise en place du SurfaceGui
 - [x] Ajouter un loading par défaut dans les assets
 - [x] Meilleure vérification des erreurs
 - [x] Possibilité de modifier l'occlusion (highlight)
-- [ ] Inverser la logique de **BarBase**
-- [ ] Modifier l'image pour avoir de vrais **GuiElements**
-- [ ] Ajouter un proxi par défaut pour les BillGui
-- [ ] Ajouter un prox par défaut pour les SurfaceGui
-- [ ] Ajouter un `ScreenGui` par défaut pour l'inventaire
+- [x] Inverser la logique de **BarBase**
+- [x] Ajouter un `ScreenGui` par défaut pour l'inventaire
 
 ---
 
