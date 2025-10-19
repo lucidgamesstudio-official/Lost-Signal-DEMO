@@ -265,6 +265,8 @@ Pour implémenter votre ProximityPrompt personnalisé, suivez ces étapes de con
 2. **Configurez les Options (valeurs booléennes et leurs sous-paramètres)**
 
    - À l'intérieur de '**CustomPromptConf**', vous pouvez ajouter des `BoolValue` pour activer différentes fonctionnalités. Pour chaque `BoolValue`, des paramètres spécifiques peuvent être définis :
+     - [NOTE] _Les paramètres ne sont pas tous obligatoires si vous ne mettez pas tout vous ne risquez pas de crash ou d'affichage d'erreur désagréable_
+
      - **`BoolValue` nommé `Beam`**
        - Active un effet de `Beam` émanant de l'objet.
        - **Paramètres disponibles (exemples non exhaustifs) :**
@@ -282,6 +284,7 @@ Pour implémenter votre ProximityPrompt personnalisé, suivez ces étapes de con
          - **HighlightColor**: `Color3Value` (Couleur du contour lumineux)
          - **HighlightParent**: `ObjectValue` (L'objet sur lequel appliquer le Highlight si différent de l'objet parent)
          - **HighlightTransparency**: `NumberValue` (Transparence du Highlight, de 0 à 1)
+         - **HighlightOccluded**: `BoolValue` (Mettre la propriété `DepthMode` sur `Occluded`)
      - `ObjectValue` nommé **ObjectValue**
        - Ne mettez rien à l'intérieur il est utile seulement pour le script
    - **IMPORTANT** pour les `BillboardGUI` l'installation au dessus est suffisante **CEPENDANT** si vous utilisez un `SufaceGui` vous devez implémenter la chose suivante:
@@ -370,7 +373,7 @@ Pour avoir:
 - [x] Expliquer la mise en place du SurfaceGui
 - [x] Ajouter un loading par défaut dans les assets
 - [x] Meilleure vérification des erreurs
-- [ ] Possibilité de modifier l'occlusion (highlight)
+- [x] Possibilité de modifier l'occlusion (highlight)
 - [ ] Inverser la logique de **BarBase**
 - [ ] Modifier l'image pour avoir de vrais **GuiElements**
 - [ ] Ajouter un proxi par défaut pour les BillGui
