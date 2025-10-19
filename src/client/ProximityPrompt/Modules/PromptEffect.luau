@@ -55,9 +55,12 @@ function PromptEffect:CreateBeam(Part1: BasePart, Part2: BasePart, Conf: PromptC
 
 	beam.Width0 = (BeamWidth and BeamWidth:IsA("NumberValue")) and BeamWidth.Value or 0.1
 	beam.Width1 = beam.Width0
-	beam.Texture = (BeamTexture and BeamTexture:IsA("StringValue") and #BeamTexture.Value > 3) and BeamTexture.Value or ""
-	beam.Color = ColorSequence.new((BeamColor and BeamColor:IsA("Color3Value")) and BeamColor.Value or Color3.new(1, 1, 1))
-	beam.Transparency = NumberSequence.new((BeamTransparency and BeamTransparency:IsA("NumberValue")) and BeamTransparency.Value or 0)
+	beam.Texture = (BeamTexture and BeamTexture:IsA("StringValue") and #BeamTexture.Value > 3) and BeamTexture.Value
+		or ""
+	beam.Color =
+		ColorSequence.new((BeamColor and BeamColor:IsA("Color3Value")) and BeamColor.Value or Color3.new(1, 1, 1))
+	beam.Transparency =
+		NumberSequence.new((BeamTransparency and BeamTransparency:IsA("NumberValue")) and BeamTransparency.Value or 0)
 	beam.FaceCamera = true
 	beam.Name = "PromptBeam"
 	beam.Parent = Part1
@@ -92,13 +95,26 @@ end
 	@returns nil
 	@description Create a Highlight effect on the part or its configured parent.
 ]]
-function PromptEffect:CreateHighlight(Part1: BasePart, Conf: PromptConf)
-	local highlight: Highlight = Instance.new("Highlight")
+function PromptEffect:CreateHighlight(Part1, Conf)
+	local highlight = Instance.new("Highlight")
 	highlight.Name = "PromptHighlight"
 	highlight.FillTransparency = 1
-	highlight.OutlineColor = Conf.Highlight.HighlightColor.Value
-	highlight.OutlineTransparency = Conf.Highlight.HighlightTransparency.Value
-	highlight.Parent = Conf.Highlight.HighlightParent.Value or Part1
+
+	local HighlightColor = Conf.Highlight:FindFirstChild("HighlightColor")
+	local HighlightTransparency = Conf.Highlight:FindFirstChild("HighlightTransparency")
+	local HighlightOccluded = Conf.Highlight:FindFirstChild("HighlightOccluded")
+	local HighlightParent = Conf.Highlight:FindFirstChild("HighlightParent")
+
+	highlight.OutlineColor = (HighlightColor and HighlightColor:IsA("Color3Value")) and HighlightColor.Value
+		or Color3.new(1, 1, 1)
+	highlight.OutlineTransparency = (HighlightTransparency and HighlightTransparency:IsA("NumberValue"))
+			and HighlightTransparency.Value
+		or 0
+	highlight.DepthMode = (HighlightOccluded and HighlightOccluded:IsA("BoolValue"))
+			and HighlightOccluded.Value
+			and Enum.HighlightDepthMode.Occluded
+		or Enum.HighlightDepthMode.AlwaysOnTop
+	highlight.Parent = (HighlightParent and HighlightParent.Value) or Part1
 end
 
 --[[
