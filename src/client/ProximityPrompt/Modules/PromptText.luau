@@ -10,7 +10,17 @@ local PromptText = {}
 PromptText.__index = PromptText
 
 -- Services
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
+local Utility = require(ReplicatedStorage.Shared.Utility)
+
+-- Typing
+export type InputFrameContainer = Frame & {
+	UiScale: UIScale,
+	ProgressBar: Frame,
+	InputImage: ImageLabel,
+	InputText: TextLabel,
+}
 
 -- Constants
 local PlayStationButtonImage = {
@@ -101,9 +111,17 @@ local KeyCodeToTextMapping = {
 	@description Sets the input text and image for the given prompt.
 ]]
 function PromptText:SetText(Prompt, InputType, TextFrame, InputFrame)
-	TextFrame.ActionText.Text = Prompt.ActionText
-	TextFrame.ObjectText.Text = Prompt.ObjectText
-
+	if TextFrame.ActionText then
+		TextFrame.ActionText.Text = Prompt.ActionText
+	end
+	if TextFrame.ObjectText then
+		TextFrame.ObjectText.Text = Prompt.ObjectText
+	end
+	local frame: InputFrameContainer = InputFrame:FindFirstChild("Frame")
+	if not frame then
+		Utility.Warn("[WARN] No frame container found", script.Name)
+		return
+	end
 	if InputType == Enum.ProximityPromptInputType.Gamepad then
 		local testButton = UserInputService:GetStringForKeyCode(Enum.KeyCode.ButtonA)
 		local key = UserInputService:GetStringForKeyCode(Prompt.GamepadKeyCode)
@@ -116,14 +134,14 @@ function PromptText:SetText(Prompt, InputType, TextFrame, InputFrame)
 		end
 
 		if img then
-			InputFrame.Frame.InputImage.Image = img.ID
-			InputFrame.Frame.InputText.Visible = false
-			InputFrame.Frame.InputImage.Visible = true
+			frame.InputImage.Image = img.ID
+			frame.InputText.Visible = false
+			frame.InputImage.Visible = true
 		end
 	elseif InputType == Enum.ProximityPromptInputType.Touch then
-		InputFrame.Frame.InputImage.Image = "rbxassetid://77313068470031"
-		InputFrame.Frame.InputText.Visible = false
-		InputFrame.Frame.InputImage.Visible = true
+		frame.InputImage.Image = "rbxassetid://77313068470031"
+		frame.InputText.Visible = false
+		frame.InputImage.Visible = true
 	else
 		local keyString = UserInputService:GetStringForKeyCode(Prompt.KeyboardKeyCode)
 		local img = KeyboardButtonImage[Prompt.KeyboardKeyCode] or KeyboardButtonIconMapping[keyString]
@@ -134,13 +152,13 @@ function PromptText:SetText(Prompt, InputType, TextFrame, InputFrame)
 		end
 
 		if img then
-			InputFrame.Frame.InputImage.Image = img.ID
-			InputFrame.Frame.InputText.Visible = false
-			InputFrame.Frame.InputImage.Visible = true
+			frame.InputImage.Image = img.ID
+			frame.InputText.Visible = false
+			frame.InputImage.Visible = true
 		elseif keyString and keyString ~= "" then
-			InputFrame.Frame.InputText.Text = keyString
-			InputFrame.Frame.InputImage.Visible = false
-			InputFrame.Frame.InputText.Visible = true
+			frame.InputText.Text = keyString
+			frame.InputImage.Visible = false
+			frame.InputText.Visible = true
 		end
 	end
 end
