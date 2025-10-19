@@ -1,44 +1,18 @@
 --!strict
---[[
-	- InputActions
-	- Alienduck
-	- 16/10/2025
-	- v1.0
-	@summary Gère la création, la récupération et l’activation des contextes d’actions clavier/manette.
-]]
-
----------------------------------------------------------------------
--- Services
----------------------------------------------------------------------
-
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
----------------------------------------------------------------------
--- Modules
----------------------------------------------------------------------
-
 local Utility = require(ReplicatedStorage.Shared.Utility)
-
----------------------------------------------------------------------
--- Templates
----------------------------------------------------------------------
-
-local actionTemplate = Instance.new("InputAction")
+local actionTemplate: InputAction = Instance.new("InputAction")
 actionTemplate.Name = "ActionTemplate"
-actionTemplate.Type = Enum.InputActionType.Bool
 actionTemplate.Parent = script
+actionTemplate.Type = Enum.InputActionType.Bool
 
-local gamepadBinding = Instance.new("InputBinding")
-gamepadBinding.Name = "GamepadBinding"
-gamepadBinding.Parent = actionTemplate
+local GamepadBinding: InputBinding = Instance.new("InputBinding")
+GamepadBinding.Name = "GamepadBinding"
+GamepadBinding.Parent = actionTemplate
 
-local keyboardBinding = Instance.new("InputBinding")
-keyboardBinding.Name = "KeyboardBinding"
-keyboardBinding.Parent = actionTemplate
-
----------------------------------------------------------------------
--- Types
----------------------------------------------------------------------
+local KeyboardBinding: InputBinding = Instance.new("InputBinding")
+KeyboardBinding.Name = "KeyboardBinding"
+KeyboardBinding.Parent = actionTemplate
 
 export type Action = InputAction & {
 	GamepadBinding: InputBinding,
@@ -56,25 +30,23 @@ export type KeybindContext = {
 	keybinds: { [string]: Action },
 }
 
----------------------------------------------------------------------
--- Constantes
----------------------------------------------------------------------
-
-local ACTION_TEMPLATE: Action = script.ActionTemplate
-local ALWAYS_ON_STATE = "idle" -- contexte toujours actif
-
----------------------------------------------------------------------
--- Variables
----------------------------------------------------------------------
-
-local keybinds: { [string]: KeybindContext } = {}
+-- module table:
 local Keybind: KeybindImpl = { CurrentContext = "" } :: KeybindImpl
 
----------------------------------------------------------------------
--- Fonctions privées
----------------------------------------------------------------------
+-- constant variables
+local ACTION_TEMPLATE: Action = script.ActionTemplate
+local ALWAYS_ON_STATE = "idle" -- this state will always be on
 
--- Crée ou récupère un contexte d’action
+-- Private variables
+local keybinds: { [string]: KeybindContext } = {}
+
+-- Private functions
+
+--[[
+	@params: name: string \
+	@return: KeybindContext \
+	@description: Find context by the given name, create and return it if not found, return it if found.
+]]
 local function getContext(name: string): KeybindContext
 	if not keybinds[name] then
 		local context = Instance.new("InputContext")
@@ -90,83 +62,71 @@ local function getContext(name: string): KeybindContext
 	return keybinds[name]
 end
 
--- Crée une action vierge clonée depuis le template
 local function getEmptyAction(): Action
 	return ACTION_TEMPLATE:Clone()
 end
 
----------------------------------------------------------------------
--- Méthodes publiques
----------------------------------------------------------------------
+-- Global methods
+function Keybind.GetAction(ctx: string, name: string): Action
+	local context: KeybindContext = getContext(ctx)
 
--- Récupère ou crée une action dans un contexte
-function Keybind.GetAction(contextName: string, actionName: string): Action
-	local context = getContext(contextName)
-	local action = context.keybinds[actionName]
-
+	local action: Action = context.keybinds[name]
 	if not action then
 		local newAction = getEmptyAction()
-		newAction.Name = actionName
+		newAction.Name = name
 		newAction.Parent = context.context
 
-		for _, binding in newAction:GetChildren() do
-			if not binding:IsA("InputBinding") then
-				continue
-			end
+		for _, v in newAction:GetChildren() do
+			local binding = v :: InputBinding
+			local bindingName: string = v.Name
 
-			local bindingName = binding.Name
 			binding:GetPropertyChangedSignal("KeyCode"):Connect(function()
 				if binding.KeyCode == Enum.KeyCode.Unknown then
 					Utility.Warn("KeyCode unknown", script.Name)
 					return
 				end
 
-				-- Vérifie si la touche correspond bien au type de binding
-				local isGamepadBinding = (binding.KeyCode.Name:find("Button") or binding.KeyCode.Name:find("DPad"))
-					and not binding.KeyCode.Name:find("Mouse")
+				-- cannot bind non-gamepad keycodes into gamepad binding
+				local isGamepadBinding = (
+					binding.KeyCode.Name:find("Button") ~= nil or binding.KeyCode.Name:find("DPad") ~= nil
+				) and binding.KeyCode.Name:find("Mouse") == nil
 
 				if (bindingName == "GamepadBinding") ~= isGamepadBinding then
 					binding.KeyCode = Enum.KeyCode.Unknown
 					Utility.Warn(
-						"Invalid keybind: gamepad bindings must only use gamepad buttons, and vice versa.",
+						"Invalid keybind provided. Gamepad bindings must only use gamepad buttons, and vice versa for keyboard.",
 						script.Name
 					)
 					return
 				end
 
-				-- Vérifie les doublons
-				for otherName, otherAction in context.keybinds do
-					if (otherAction :: any) == newAction then
+				-- loop to check for duplicates
+				for otherName: string, v: Action in context.keybinds do
+					if (v :: any) == (newAction :: any) then
 						continue
 					end
 
-					local otherBinding = otherAction:FindFirstChild(bindingName)
-					if otherBinding and otherBinding:IsA("InputBinding") then
-						if otherBinding.KeyCode == binding.KeyCode then
-							Utility.Warn(`Conflicting keybinds found for {actionName} and {otherName}.`, script.Name)
+					local bindingInstance: InputBinding = v:FindFirstChild(bindingName) :: InputBinding
+					if bindingInstance and bindingInstance:IsA("InputBinding") then
+						if bindingInstance.KeyCode == binding.KeyCode then
+							Utility.Warn(`Conflicting keybinds found for {name} and {otherName}.`, script.Name)
 						end
 					end
 				end
 			end)
 		end
 
-		context.keybinds[actionName] = newAction
+		context.keybinds[name] = newAction
 		action = newAction
 	end
-
 	return action
 end
 
--- Active un contexte (désactive les autres sauf "idle")
 function Keybind.EnableContext(context)
-	for name, entry in keybinds do
-		entry.context.Enabled = (name == context or name == ALWAYS_ON_STATE)
+	for name: string, v: KeybindContext in keybinds do
+		v.context.Enabled = name == context or name == ALWAYS_ON_STATE
 	end
 	Keybind.CurrentContext = context
 end
-
----------------------------------------------------------------------
--- Return
----------------------------------------------------------------------
 
 return Keybind :: KeybindImpl
