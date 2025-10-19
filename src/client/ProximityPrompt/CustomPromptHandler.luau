@@ -41,11 +41,13 @@ local function isCustom(prompt)
 
 	local conf = prompt:FindFirstChild("CustomPromptConf")
 	if not conf then
+		Utility.Info("No configuration", script.Name)
 		return false
 	end
 
 	local customFlag = conf:FindFirstChild("CustomPrompt")
 	if not customFlag or not customFlag:IsA("BoolValue") then
+		Utility.Warn("[WARN] No custom prompt set", script.Name)
 		return false
 	end
 
@@ -66,7 +68,7 @@ local function handle(prompt, methodName, inputType)
 	local moduleScript = PromptFolder:FindFirstChild(moduleName)
 
 	if not moduleScript then
-		warn("[CustomPromptHandler] Module not found:", moduleName)
+		Utility.Warn("[WARN] Module not found", script.Name)
 		return
 	end
 
@@ -88,10 +90,10 @@ end
 PromptService.PromptShown:Connect(function(prompt, inputType)
 	if isCustom(prompt) then
 		local conf = prompt.CustomPromptConf
-		if conf.Beam.Value then
+		if conf.Beam and conf.Beam.Value then
 			PromptEffect:CreateBeam(prompt.Parent, character:FindFirstChild("HumanoidRootPart"), conf)
 		end
-		if conf.Highlight.Value then
+		if conf.Highlight and conf.Highlight.Value then
 			PromptEffect:CreateHighlight(prompt.Parent, conf)
 		end
 	end
@@ -101,10 +103,10 @@ end)
 PromptService.PromptHidden:Connect(function(prompt, inputType)
 	if isCustom(prompt) then
 		local conf = prompt.CustomPromptConf
-		if conf.Beam.Value then
+		if conf.Beam and conf.Beam.Value then
 			PromptEffect:DestroyBeam(prompt.Parent, character:FindFirstChild("HumanoidRootPart"))
 		end
-		if conf.Highlight.Value then
+		if conf.Highlight and conf.Highlight.Value then
 			PromptEffect:DestroyHighlight(prompt.Parent, conf)
 		end
 	end
@@ -127,7 +129,7 @@ end)
 -- Initialization
 ---------------------------------------------------------------------
 
-Utility.Warn("[CustomPromptHandler] Custom Proximity Prompt System loaded (by Madrian622)", script.Name)
+Utility.Info("Custom Proximity Prompt System loaded (by Madrian622)", script.Name)
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "CustomPrompts"
