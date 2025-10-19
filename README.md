@@ -1,5 +1,59 @@
 # 🧩 Fiche technique — _Lost Signal DEMO_
 
+## **Pour les débutants**
+
+_L'utilisation de `Github` vous est probablement inconnue alors je vais faire un cours tutoriel._
+
+Dans un premier temps vous aurez besoin de toutes les composantes de cette vidéo:
+
+<div class="frame" style="display: flex; justify-content: center; transition: transform 1s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
+  <iframe width="500" height="300" src="https://www.youtube.com/embed/IJDg6tRJmHo" title="How Big Studios Develop on Roblox" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+</div>
+
+_oui la vidéo est probablement traduite automatiquement avec une voix de robot, vous pouvez changer (je recommande)_
+
+Ensuite pour installer le code il y a plusieurs choses à savoir:
+
+- J'utilise plusieurs branches sur Github, la `main` sera **TOUJOURS** fonctionnelle mais n'aura pas les dernières fonctionnalités
+- Les branches annexes par contre elles auront des fonctionnalités supplémentaires mais sont plus instables.
+
+Je préviens juste avant, mais tout ce qui est entre '[ ]' sera à remplacer dans ce qui va suivre, ça me sert juste à vous expliquer quoi mettre
+
+Les commandes que vous pouvez utiliser:
+
+```bash
+git clone [lien]
+```
+
+Vous avez 2 types de liens:
+
+- HTTPS (si vous n'avez pas configuré le SSH)
+  - `https://github.com/lucidgamesstudio-official/Lost-Signal-DEMO.git`
+- SSH (si vous avez configuré une clé RSA)
+  - `git@github.com:lucidgamesstudio-official/Lost-Signal-DEMO.git`
+
+```bash
+git pull origin main
+```
+
+Commande pour mettre à jour le code dans votre branche
+
+```bash
+git branch
+```
+
+Commande pour lister les branches disponibles
+
+```bash
+git switch [nom_de_la_branche]
+```
+
+Pour changer de branche.
+Actuellement il y a seulement 2 branches:
+
+1. `main`
+2. `inventory`
+
 ## 🎮 **Composantes de gameplay**
 
 | Composante          | Description                                                      | Implémentation                                |
@@ -317,12 +371,13 @@ Pour avoir:
 
 - [x] Expliquer la mise en place du SurfaceGui
 - [x] Ajouter un loading par défaut dans les assets
+- [x] Meilleure vérification des erreurs
 - [ ] Possibilité de modifier l'occlusion (highlight)
-- [ ] Meilleure vérification des erreurs
 - [ ] Inverser la logique de **BarBase**
 - [ ] Modifier l'image pour avoir de vrais **GuiElements**
 - [ ] Ajouter un proxi par défaut pour les BillGui
 - [ ] Ajouter un prox par défaut pour les SurfaceGui
+- [ ] Ajouter un `ScreenGui` par défaut pour l'inventaire
 
 ---
 
