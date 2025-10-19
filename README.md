@@ -7,6 +7,7 @@ _L'utilisation de `Github` vous est probablement inconnue alors je vais faire un
 Dans un premier temps vous aurez besoin de toutes les composantes de cette vidéo:
 
 [![How Big Studios Develop on Roblox](https://img.youtube.com/vi/IJDg6tRJmHo/0.jpg)](https://www.youtube.com/watch?v=IJDg6tRJmHo)
+
 _oui la vidéo est probablement traduite automatiquement avec une voix de robot, vous pouvez changer (je recommande)_
 
 Ensuite pour installer le code il y a plusieurs choses à savoir:
