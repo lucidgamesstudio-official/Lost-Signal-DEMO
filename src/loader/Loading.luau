@@ -24,7 +24,7 @@ local GUI_FOLDER: Folder = ReplicatedFirst:FindFirstChild("Guis") :: Folder
 if not GUI_FOLDER then
 	return Utility.Warn("Warn: Fail to find GUIS folder", script.Name)
 end
-local ASSETS: { Instance } = ReplicatedStorage:GetDescendants()
+local ASSETS: { Instance } = game:GetDescendants()
 local REMOTE_EVENT_FOLDER = Utility.CreateFolder("RemoteEvents")
 
 -- Variables
@@ -109,19 +109,27 @@ end
 
 function LoadingModule.Init(self: LoadingModuleType)
 	for _, content in ipairs(self.Screen:GetDescendants()) do
-		ContentProvider:PreloadAsync({content})
+		ContentProvider:PreloadAsync({ content })
 	end
 	self.Screen.Enabled = true
 	self.Container.Visible = true
 	self.Screen.Parent = self.Player:WaitForChild("PlayerGui")
+	self.BarLoading.AnchorPoint = Vector2.new(1, .5)
+	self.BarLoading.Position = UDim2.fromScale(1, .5)
+	self.BarLoading.Size = UDim2.fromScale(1, 1)
 	fadeIn(self.Container, true)
 	for index, element in ipairs(ASSETS) do
 		self.AssetLoading.Text = "Loading: " .. element.Name .. "..."
 		ContentProvider:PreloadAsync({ element })
 
 		local progress = index / #ASSETS
-		self.BarLoading.Size = UDim2.new(progress, 0, self.BarLoading.Size.Y.Scale, 0)
+		-- ancienne version : grandit la barre
+		-- self.BarLoading.Size = UDim2.new(progress, 0, self.BarLoading.Size.Y.Scale, 0)
+
+		-- nouvelle version : rétrécit la barre
+		self.BarLoading.Size = UDim2.new(1 - progress, 0, self.BarLoading.Size.Y.Scale, 0)
 	end
+
 	Utility.CreateRemoteEvent("spawnPlayer", REMOTE_EVENT_FOLDER):FireServer()
 	Players.LocalPlayer.CharacterAdded:Wait()
 	fadeOut(self.Container, true)
