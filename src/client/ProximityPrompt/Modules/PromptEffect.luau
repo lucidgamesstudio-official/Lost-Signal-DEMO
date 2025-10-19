@@ -48,11 +48,16 @@ function PromptEffect:CreateBeam(Part1: BasePart, Part2: BasePart, Conf: PromptC
 	local beam: Beam = Instance.new("Beam")
 	beam.Attachment0 = fromAttachment
 	beam.Attachment1 = toAttachment
-	beam.Width0 = Conf.Beam.BeamWidth.Value
-	beam.Width1 = Conf.Beam.BeamWidth.Value
-	beam.Texture = (#Conf.Beam.BeamTexture.Value > 3) and Conf.Beam.BeamTexture.Value or ""
-	beam.Color = ColorSequence.new(Conf.Beam.BeamColor.Value)
-	beam.Transparency = NumberSequence.new(Conf.Beam.BeamTransparency.Value)
+	local BeamWidth = Conf.Beam:FindFirstChild("BeamWidth")
+	local BeamTexture = Conf.Beam:FindFirstChild("BeamTexture")
+	local BeamColor = Conf.Beam:FindFirstChild("BeamColor")
+	local BeamTransparency = Conf.Beam:FindFirstChild("BeamTransparency")
+
+	beam.Width0 = (BeamWidth and BeamWidth:IsA("NumberValue")) and BeamWidth.Value or 0.1
+	beam.Width1 = beam.Width0
+	beam.Texture = (BeamTexture and BeamTexture:IsA("StringValue") and #BeamTexture.Value > 3) and BeamTexture.Value or ""
+	beam.Color = ColorSequence.new((BeamColor and BeamColor:IsA("Color3Value")) and BeamColor.Value or Color3.new(1, 1, 1))
+	beam.Transparency = NumberSequence.new((BeamTransparency and BeamTransparency:IsA("NumberValue")) and BeamTransparency.Value or 0)
 	beam.FaceCamera = true
 	beam.Name = "PromptBeam"
 	beam.Parent = Part1
