@@ -6,9 +6,7 @@ _L'utilisation de `Github` vous est probablement inconnue alors je vais faire un
 
 Dans un premier temps vous aurez besoin de toutes les composantes de cette vidéo:
 
-<div class="frame" style="display: flex; justify-content: center; transition: transform 1s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'">
   <iframe width="500" height="300" src="https://www.youtube.com/embed/IJDg6tRJmHo" title="How Big Studios Develop on Roblox" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-</div>
 
 _oui la vidéo est probablement traduite automatiquement avec une voix de robot, vous pouvez changer (je recommande)_
 
