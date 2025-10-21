@@ -57,6 +57,7 @@ export type PlayerClassType = {
 	StartRun: (self: PlayerClassType) -> (),
 	StopRun: (self: PlayerClassType) -> (),
 	AddItem: (self: PlayerClassType, toolName: string) -> (),
+	RemoveItem: (self: PlayerClassType, tool: Tool) -> (),
 	EquipTool: (self: PlayerClassType, toolName: string) -> (),
 	UnequipTool: (self: PlayerClassType) -> (),
 	Disconnect: (self: PlayerClassType) -> (),
@@ -91,6 +92,19 @@ PlayerClass.__index = PlayerClass
 PlayerClass.State = PlayerStateEnum
 
 ---------------------------------------------------------------------
+-- HELPER
+---------------------------------------------------------------------
+
+local function hasCopy(Backpack: Backpack, toolName: string): boolean
+	for _, item: Instance in ipairs(Backpack:GetChildren() :: { Instance }) do
+		if item:IsA("Tool") and item.Name == toolName then
+			return true
+		end
+	end
+	return false
+end
+
+---------------------------------------------------------------------
 -- Constructeur
 ---------------------------------------------------------------------
 
@@ -113,7 +127,7 @@ end
 -- Initialisation
 ---------------------------------------------------------------------
 
-function PlayerClass:Init()
+function PlayerClass.Init(self: PlayerClassType)
 	self.player:LoadCharacter()
 	self.character = self.player.Character or self.player.CharacterAdded:Wait()
 	if not self.character then
@@ -121,13 +135,13 @@ function PlayerClass:Init()
 		return
 	end
 
-	self.humanoid = self.character:FindFirstChildOfClass("Humanoid")
-	if not self.humanoid then
+	self.humanoid = self.character:FindFirstChildOfClass("Humanoid") :: Humanoid
+	if not self.humanoid or not self.humanoid:IsA("Humanoid") then
 		Utility.Warn("No Humanoid found in " .. self.player.Name, script.Name)
 		return
 	end
 
-	self.HumanoidRootPart = self.character:WaitForChild("HumanoidRootPart")
+	self.HumanoidRootPart = self.character:WaitForChild("HumanoidRootPart") :: BasePart
 	if not self.HumanoidRootPart then
 		Utility.Warn("No HumanoidRootPart found in " .. self.player.Name, script.Name)
 		return
@@ -150,7 +164,7 @@ end
 -- Course et stamina
 ---------------------------------------------------------------------
 
-function PlayerClass:StartRun()
+function PlayerClass.StartRun(self: PlayerClassType)
 	local character = self.player.Character
 	if not character then
 		return
@@ -197,7 +211,7 @@ function PlayerClass:StartRun()
 	end
 end
 
-function PlayerClass:StopRun()
+function PlayerClass.StopRun(self: PlayerClassType)
 	if self._playerRunConn then
 		self:RemoveConnection(self._playerRunConn)
 	end
@@ -209,7 +223,7 @@ function PlayerClass:StopRun()
 		self._playerStaminaRegenThread = nil
 	end
 
-	local regenThread = { _stopped = false }
+	local regenThread: BetterThread = { _stopped = false } :: BetterThread
 	self._playerStaminaRegenThread = regenThread
 	self:AddConnection(regenThread)
 
@@ -226,10 +240,16 @@ end
 -- Gestion d'items
 ---------------------------------------------------------------------
 
-function PlayerClass:AddItem(toolName): nil
+function PlayerClass.AddItem(self: PlayerClassType, toolName: string): nil
 	local tool = Utility.GetToolByName(toolName, ITEM_FOLDER)
 	if not tool then
 		return Utility.Error("Warn: item " .. toolName .. " does not exist", script.Name)
+	end
+	if #self.player.Backpack:GetChildren() >= 3 then
+		return Utility.Info(`Backpack of {self.player.Name} is full`, script.Name)
+	end
+	if hasCopy(self.player.Backpack, toolName) then
+		return
 	end
 
 	local clone = tool:Clone()
@@ -237,7 +257,17 @@ function PlayerClass:AddItem(toolName): nil
 	return
 end
 
-function PlayerClass:EquipTool(toolName): nil
+function PlayerClass.RemoveItem(self: PlayerClassType, tool: Tool): nil
+	for _, item: Instance in ipairs(self.player.Backpack:GetChildren()) do
+		if item:IsA("Tool") and item == tool then
+			item:Destroy()
+			return
+		end
+	end
+	return
+end
+
+function PlayerClass.EquipTool(self: PlayerClassType, toolName): nil
 	local tool = self.player.Backpack:FindFirstChild(toolName)
 	if not tool then
 		Utility.DebugItem(tool)
@@ -255,11 +285,11 @@ end
 -- Connexions
 ---------------------------------------------------------------------
 
-function PlayerClass:AddConnection(conn)
+function PlayerClass.AddConnection(self: PlayerClassType, conn)
 	table.insert(self._allConnections, conn)
 end
 
-function PlayerClass:RemoveConnection(conn)
+function PlayerClass.RemoveConnection(self: PlayerClassType, conn)
 	local index = table.find(self._allConnections, conn)
 	if not index then
 		return
