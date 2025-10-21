@@ -54,19 +54,20 @@ Actuellement il y a seulement 2 branches:
 
 ## 🎮 **Composantes de gameplay**
 
-| Composante          | Description                                                      | Implémentation                                |
-| ------------------- | ---------------------------------------------------------------- | --------------------------------------------- |
-| Déplacement de base | Mouvement standard Roblox `Humanoid`                             | Par défaut                                    |
-| Accroupissement     | Toggle ou maintient (`ctrl` ou `C`) pour passer en mode accroupi | Animation + vitesse réduite                   |
-| Sprint              | Sprint temporaire avec barre de stamina                          | `Shift` + système de stamina et effets visuel |
-| Stamina             | Barre qui diminue en sprint, se recharge lentement               | UI + logique de cooldown                      |
-| Lampe torche        | Toggle avec `F`, portée limitée, effet de lumière dynamique      | `SpotLight` attaché au joueur                 |
-| Interaction         | Appuie sur une touche `E` pour interagir avec des objets         | `ProximityPrompt`                             |
-| Journal/Logs        | Objets à ramasser ou lire                                        | UI                                            |
-| Effets visuels      | Brouillard, lumières dynamiques, distorsion visuelle             | `PostEffect`, `Tween`, `ParticleEmitter`      |
-| Effets sonores      | Bruits de pas, radio, ambiance et jumpscare                      | `SoundService` + `Sound` localisés            |
-| Evènements scriptés | Apparitions, blackout, portes qui s'ouvrent toutes seules        | `BindableEvent`, `Tween`, `Animation`         |
-| Fin de partie       | Déclenchement d'une fin (sortie, piégeage, révélation)           | Trigger + UI narrative                        |
+| Composante          | Description                                                                | Technicité                                                         | Implémenter                        |
+| ------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------- |
+| Déplacement de base | Mouvement standard Roblox `Humanoid`                                       | Par défaut                                                         | OUI                                |
+| Accroupissement     | Toggle ou maintient (`ctrl` ou `C`) pour passer en mode accroupi           | Animation + vitesse réduite                                        | NON                                |
+| Sprint              | Sprint temporaire avec barre de stamina                                    | `Shift` + système de stamina et effets visuel                      | OUI (sans UI et effets visuels)    |
+| Stamina             | Barre qui diminue en sprint, se recharge lentement                         | UI + logique de cooldown                                           | OUI (pas d'UI)                     |
+| Lampe torche        | Toggle avec `F`, portée limitée, effet de lumière dynamique                | Item principal, `SpotLight` + effet d'activation et de blinking    | NON                                |
+| Inventaire          | Toggle avec `Tab`, se montre aussi automatiquement lors d'une modification | Maximum 3 `Tool`, ne peut avoir le même `Tool`. Entièrement custom | OUI                                |
+| Interaction         | Appuie sur une touche `E` pour interagir avec des objets                   | `ProximityPrompt` avec interface custom                            | OUI (+ système entièrement custom) |
+| Journal/Logs        | Objets à ramasser ou lire                                                  | UI + effet 3D                                                      | NON                                |
+| Effets visuels      | Brouillard, lumières dynamiques, distorsion visuelle                       | `PostEffect`, `Tween`, `ParticleEmitter`                           | NON                                |
+| Effets sonores      | Bruits de pas, radio, ambiance et jumpscare                                | `SoundService` + `Sound` localisés                                 | NON                                |
+| Evènements scriptés | Apparitions, blackout, portes qui s'ouvrent toutes seules                  | `BindableEvent`, `Tween`, `Animation`                              | Partiellement                      |
+| Fin de partie       | Déclenchement d'une fin (sortie, piégeage, révélation)                     | Trigger + UI narrative                                             | NON                                |
 
 ## 🧱 **Structure technique du projet**
 
@@ -74,6 +75,8 @@ Actuellement il y a seulement 2 branches:
 
 - `Player/Inputs.luau`:
   - Binding des touches
+- `Player/Inventory.luau`:
+  - Gère tout l'inventaire du joueur
 - `ProximityPrompt/Modules/PromptEffect.luau`:
   - Gère la création et la suppression des effets des `ProximityPrompt`
 - `ProximityPrompt/Modules/PromptText.luau`:
@@ -110,6 +113,13 @@ Actuellement il y a seulement 2 branches:
   - Module très puissant utilisant le nouveau type de binding
 - `Utility.luau`:
   - Bibliothèque perso de fonctions très pratiques
+
+### 🔄️ Loader
+
+- `Loading.luau`:
+  - Gère l'interface du loading screen ainsi que le chargement des assets
+- `init.client.luau`:
+  - Démarre le chargement en s'assurant du bon fonctionnement du loading
 
 ```mermaid
 %% Diagramme d'arborescence du projet
@@ -148,9 +158,11 @@ graph TD
     SH1 --> SH1A[InputActions.luau]
     SHARED --> SH2[Utility.luau]
 
+    %% LOADER
+	ROOT --> LOADER[🔄️ Loader]
+	LOADER --> L1[init.client.luau]
+	LOADER --> L2[Loading.luau]
 ```
-
-<div style="margin: auto; text-align: center">
 
 ## State Machine
 
@@ -160,6 +172,7 @@ stateDiagram-v2
 
     [*] --> Idle
     [*] --> Action: MouseLeftButton
+    [*] --> Inventory: Tab
 
     state Idle {
         [*] --> Stand
@@ -181,8 +194,6 @@ stateDiagram-v2
     note right of Action: Actions instantanées (ex attaques)
 
 ```
-
-</div>
 
 ## 🚀 ProximityPrompt : Un système de prompts personnalisables
 
