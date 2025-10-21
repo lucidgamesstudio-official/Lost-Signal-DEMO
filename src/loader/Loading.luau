@@ -24,7 +24,7 @@ local GUI_FOLDER: Folder = ReplicatedFirst:FindFirstChild("Guis") :: Folder
 if not GUI_FOLDER then
 	return Utility.Warn("Warn: Fail to find GUIS folder", script.Name)
 end
-local ASSETS: { Instance } = game:GetDescendants()
+local ASSETS: { Instance } = workspace:GetDescendants()
 local REMOTE_EVENT_FOLDER = Utility.CreateFolder("RemoteEvents")
 
 -- Variables
