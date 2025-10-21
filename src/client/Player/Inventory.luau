@@ -79,7 +79,7 @@ end
 
 -- Methods
 
-function PlayerInventory:AddItem(tool: Tool)
+function PlayerInventory.AddItem(self: PlayerInventoryType, tool: Tool)
 	local newSlot: ItemSlot = self.PlaceHolder:Clone()
 	local toolRepresentation: Tool = TOOL_REPRESENTATION_FOLDER:FindFirstChild(tool.Name)
 
@@ -111,8 +111,8 @@ function PlayerInventory:AddItem(tool: Tool)
 	self:ShowInventory(2)
 end
 
-function PlayerInventory:RemoveItem(tool: Tool)
-	local slot: ItemSlot = self.SlotContainer:FindFirstChild(tool.Name)
+function PlayerInventory.RemoveItem(self: PlayerInventoryType, tool: Tool)
+	local slot: ItemSlot = self.SlotContainer:FindFirstChild(tool.Name) :: ItemSlot
 	if not slot then
 		Utility.Warn("Warn: slot not found in: " .. tostring(self.SlotContainer), script.Name)
 		return
@@ -144,7 +144,7 @@ function PlayerInventory:RemoveItem(tool: Tool)
 	end
 end
 
-function PlayerInventory:ShowInventory(hideDelay: number?)
+function PlayerInventory.ShowInventory(self: PlayerInventoryType, hideDelay: number?)
 	if not self.canInteract then
 		return
 	end
@@ -166,7 +166,7 @@ function PlayerInventory:ShowInventory(hideDelay: number?)
 	end)
 end
 
-function PlayerInventory:HideInventory()
+function PlayerInventory.HideInventory(self: PlayerInventoryType)
 	if not self.canInteract then
 		return
 	end
@@ -183,7 +183,7 @@ function PlayerInventory:HideInventory()
 	end)
 end
 
-function PlayerInventory:GetSlotByIndex(index: number?): ItemSlot?
+function PlayerInventory.GetSlotByIndex(self: PlayerInventoryType, index: number?): ItemSlot?
 	index = index or 0
 	for _, slot in ipairs(self.SlotContainer:GetChildren()) do
 		if slot:IsA("ImageButton") and slot.LayoutOrder == index then
