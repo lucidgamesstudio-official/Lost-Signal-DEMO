@@ -23,8 +23,8 @@ local REGEN_INTERVAL = 0.5
 local MIN_STAMINA = 0
 local MAX_STAMINA = 100
 
-local PLAYER_WALK_SPEED = 16
-local PLAYER_RUN_SPEED = 24
+local PLAYER_WALK_SPEED = 10
+local PLAYER_RUN_SPEED = 16
 
 local ITEM_FOLDER = Utility.CreateFolder("Items")
 
@@ -43,7 +43,7 @@ export type PlayerClassType = {
 	humanoid: Humanoid,
 	HumanoidRootPart: BasePart?,
 	stamina: number,
-	state: number,
+	state: string,
 
 	-- Private
 	_playerRunConn: RBXScriptConnection?,
@@ -54,6 +54,9 @@ export type PlayerClassType = {
 	-- Public Methods
 	new: (player: Player) -> PlayerClassType,
 	Init: (self: PlayerClassType) -> (),
+	SetState: (self: PlayerClassType, state: string) -> boolean,
+	FromToState: (self: PlayerClassType, fromStateName: string, toStateName: string) -> boolean,
+	SetStateForce: (self: PlayerClassType, state: string) -> boolean,
 	StartRun: (self: PlayerClassType) -> (),
 	StopRun: (self: PlayerClassType) -> (),
 	AddItem: (self: PlayerClassType, toolName: string) -> (),
@@ -65,12 +68,15 @@ export type PlayerClassType = {
 	RemoveConnection: (self: PlayerClassType, conn: RBXScriptConnection | thread) -> (),
 
 	-- Private Methods
+	DebugState: (self: PlayerClassType, ...string) -> (),
 }
 
 export type PlayerStateEnumType = {
 	Idle: number,
 	Walk: number,
 	Run: number,
+	Crouch: number,
+	Dead: number,
 }
 
 ---------------------------------------------------------------------
@@ -81,6 +87,8 @@ local PlayerStateEnum = table.freeze({
 	Idle = 1,
 	Walk = 2,
 	Run = 3,
+	Crouch = 3,
+	Dead = 100,
 })
 
 ---------------------------------------------------------------------
@@ -113,7 +121,7 @@ function PlayerClass.new(player)
 
 	self.player = player
 	self.stamina = 100
-	self.state = PlayerStateEnum.Idle
+	self.state = "Idle"
 
 	self._playerRunConn = nil
 	self._playerStaminaRegenThread = nil
@@ -161,6 +169,61 @@ function PlayerClass.Init(self: PlayerClassType)
 end
 
 ---------------------------------------------------------------------
+-- State Manager
+---------------------------------------------------------------------
+
+function PlayerClass.DebugState(self: PlayerClassType, ...)
+	local args = ...
+	if #args == 1 then
+		Utility.Info(`Actual State: {self.state} \nState asked: {args[1]}`)
+	elseif #args == 2 then
+		Utility.Info(`Actual State: {self.state} \nState from: {args[1]} \nState asked: {args[2]}`)
+	else
+		print(args)
+	end
+end
+
+function PlayerClass.SetState(self: PlayerClassType, stateName: string): boolean
+	self:DebugState(stateName)
+	local stateImportance: number = PlayerStateEnum[stateName]
+	if not stateImportance then
+		Utility.Warn(`State {stateName} not found`, script.Name)
+		return false
+	end
+	if PlayerStateEnum[self.state] <= stateImportance then
+		self.state = stateName
+	else
+		Utility.Info(`State asked has not enough importance`, script.Name)
+		return false
+	end
+	return true
+end
+
+function PlayerClass.FromToState(self: PlayerClassType, fromStateName: string, toStateName: string): boolean
+	self:DebugState(fromStateName, toStateName)
+	print(fromStateName, toStateName, self.state)
+	if not PlayerStateEnum[toStateName] then
+		Utility.Warn(`State {toStateName} not found`, script.Name)
+		return false
+	end
+	if PlayerStateEnum[self.state] == fromStateName then
+		self.state = toStateName
+	end
+	return true
+end
+
+function PlayerClass.SetStateForce(self: PlayerClassType, stateName: string): boolean
+	self:DebugState(stateName)
+	local stateImportance: number = PlayerStateEnum[stateName]
+	if not stateImportance then
+		Utility.Warn(`State {stateName} not found`, script.Name)
+		return false
+	end
+	self.state = stateName
+	return true
+end
+
+---------------------------------------------------------------------
 -- Course et stamina
 ---------------------------------------------------------------------
 
@@ -172,6 +235,10 @@ function PlayerClass.StartRun(self: PlayerClassType)
 
 	local root = character:FindFirstChild("HumanoidRootPart")
 	if not root then
+		return
+	end
+
+	if not self:SetState("Run") then
 		return
 	end
 
@@ -214,6 +281,10 @@ end
 function PlayerClass.StopRun(self: PlayerClassType)
 	if self._playerRunConn then
 		self:RemoveConnection(self._playerRunConn)
+	end
+
+	if not self:FromToState("Run", "Idle") then
+		Utility.Info(`Cannot stop run to Idle`, script.Name)
 	end
 
 	self.humanoid.WalkSpeed = PLAYER_WALK_SPEED
@@ -282,7 +353,7 @@ function PlayerClass:UnequipTool()
 end
 
 ---------------------------------------------------------------------
--- Connexions
+-- Connections
 ---------------------------------------------------------------------
 
 function PlayerClass.AddConnection(self: PlayerClassType, conn)
