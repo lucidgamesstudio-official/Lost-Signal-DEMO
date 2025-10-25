@@ -16,6 +16,7 @@ export type PromptConf = Configuration & {
 		BeamTexture: StringValue,
 		BeamTransparency: NumberValue,
 		BeamWidth: NumberValue,
+		BeamSpeed: BoolValue,
 	},
 	CustomPrompt: BoolValue & {
 		PromptName: StringValue,
@@ -52,6 +53,7 @@ function PromptEffect:CreateBeam(Part1: BasePart, Part2: BasePart, Conf: PromptC
 	local BeamTexture = Conf.Beam:FindFirstChild("BeamTexture")
 	local BeamColor = Conf.Beam:FindFirstChild("BeamColor")
 	local BeamTransparency = Conf.Beam:FindFirstChild("BeamTransparency")
+	local BeamSpeed = Conf.Beam:FindFirstChild("BeamSpeed")
 
 	beam.Width0 = (BeamWidth and BeamWidth:IsA("NumberValue")) and BeamWidth.Value or 0.1
 	beam.Width1 = beam.Width0
@@ -61,6 +63,16 @@ function PromptEffect:CreateBeam(Part1: BasePart, Part2: BasePart, Conf: PromptC
 		ColorSequence.new((BeamColor and BeamColor:IsA("Color3Value")) and BeamColor.Value or Color3.new(1, 1, 1))
 	beam.Transparency =
 		NumberSequence.new((BeamTransparency and BeamTransparency:IsA("NumberValue")) and BeamTransparency.Value or 0)
+	if BeamSpeed and BeamSpeed.Value then
+		local DefaultSpeed: NumberValue = Instance.new("NumberValue")
+		DefaultSpeed.Name = "DefaultSpeed"
+		DefaultSpeed.Value = 1
+		DefaultSpeed.Parent = beam
+		local HoldSpeed: NumberValue = Instance.new("NumberValue")
+		HoldSpeed.Name = "HoldSpeed"
+		HoldSpeed.Value = 2.5
+		HoldSpeed.Parent = beam
+	end
 	beam.FaceCamera = true
 	beam.Name = "PromptBeam"
 	beam.Parent = Part1
