@@ -11,6 +11,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- Modules
+local FootstepController = require(script.Player.FootstepController)
 local Utility = require(ReplicatedStorage.Shared.Utility)
 local Inputs = require(script.Player.Inputs)
 local InventoryModule = require(script.Player.Inventory)
@@ -60,3 +61,6 @@ Utility.CreateRemoteEvent("addConnections", REMOTE_FOLDER):FireServer({
 	backpackAddedConn,
 	backpackRemovedConn,
 })
+
+-- START INITIATE CLIENT (client side)
+FootstepController.Load()
