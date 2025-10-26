@@ -24,6 +24,12 @@
       },
       "ProxisGui": {
         "$path": "assets/CustomPrompt.rbxmx"
+      },
+      "Items": {
+        "$className": "Folder",
+        "LucidTorch": {
+          "$className": "Tool"
+        }
       }
     },
 
