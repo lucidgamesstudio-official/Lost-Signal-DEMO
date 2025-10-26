@@ -135,7 +135,7 @@ end
 local function startFootstepLogic(Humanoid: Humanoid, RootPart: BasePart): RBXScriptConnection
 	local footstepSound = Instance.new("Sound")
 	footstepSound.Name = "FootstepSound"
-	footstepSound.Volume = 0.8
+	footstepSound.Volume = 0.25
 	footstepSound.Parent = RootPart
 
 	local lastStepTime = 0
