@@ -16,6 +16,7 @@ local Players = game:GetService("Players")
 -- Modules
 ---------------------------------------------------------------------
 
+local LightingController = require(script.Lighting.LightingController)
 local PlayerManager = require(script.Player.PlayerManager)
 local InitObjects = require(script.Objects.InitObjects)
 
@@ -23,6 +24,7 @@ local InitObjects = require(script.Objects.InitObjects)
 -- Initialisation
 ---------------------------------------------------------------------
 
+LightingController:Init()
 print(InitObjects)
 
 ---------------------------------------------------------------------
