@@ -3,6 +3,12 @@
   "tree": {
     "$className": "DataModel",
 
+    "Lighting": {
+      "GameSetting": {
+        "$path": "lighting-effects/GameSetting.rbxmx"
+      }
+    },
+
     "ReplicatedFirst": {
       "Loader": {
         "$path": "src/loader"
