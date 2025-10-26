@@ -266,6 +266,13 @@ function Utility.GetDistance(pos1: Vector3, pos2: Vector3): number
 	return (pos1 - pos2).Magnitude
 end
 
+-- Génère un nombre aléatoire entre un minimum et un maximum
+function Utility.random(min: number?, max: number?)
+	local minNumber: number = min or 0
+	local maxNumber: number = max or 1
+	return minNumber + math.random() * (maxNumber - minNumber)
+end
+
 -- Récupère le shirt d’un personnage
 function Utility.GetShirtFromCharacter(character: Model): Shirt?
 	return character:FindFirstChildWhichIsA("Shirt")
