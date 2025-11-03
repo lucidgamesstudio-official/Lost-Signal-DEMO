@@ -26,9 +26,13 @@
         "$path": "assets/CustomPrompt.rbxmx"
       },
       "Items": {
+        "$ignoreUnknownInstances": true,
         "$className": "Folder",
         "LucidTorch": {
-          "$className": "Tool"
+          "$className": "Tool",
+          "Logic": {
+            "$path": "tools-scripts/torch.client.luau"
+          }
         }
       }
     },
