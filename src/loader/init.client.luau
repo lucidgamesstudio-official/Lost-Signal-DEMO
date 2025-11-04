@@ -18,6 +18,7 @@ if RunService:IsServer() then
 		loader:Init()
 	end
 else
+	task.wait(1) -- Au cas ou
 	Utility.CreateRemoteEvent("spawnPlayer", Utility.CreateFolder("RemoteEvents")):FireServer()
 end
 
