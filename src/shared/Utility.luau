@@ -10,6 +10,7 @@
 -- Services
 ---------------------------------------------------------------------
 
+local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -64,38 +65,38 @@ function Utility.CreateFolder(name: string, parent: Instance?)
 end
 
 -- Crée ou récupère un RemoteEvent
-function Utility.CreateRemoteEvent(name: string, parent: Instance?, callback: ({}) -> ()?): RemoteEvent
+function Utility.CreateRemoteEvent(
+	name: string,
+	parent: Instance?,
+	callback: ({}) -> ()? | (player: Player, ...any) -> ()?
+): RemoteEvent
 	local targetParent = parent or ReplicatedStorage
-	local remote = targetParent:FindFirstChild(name)
+	local remote: RemoteEvent = targetParent:FindFirstChild(name)
 
 	if remote and remote:IsA("RemoteEvent") then
 		if callback then
 			if RunService:IsServer() and remote.OnServerEvent then
-				if #remote.OnServerEvent:GetConnections() == 0 then
-					remote.OnServerEvent:Connect(callback)
-				end
+				remote.OnServerEvent:Connect(callback :: (Player, ...any) -> ())
 			elseif RunService:IsClient() and remote.OnClientEvent then
-				if #remote.OnClientEvent:GetConnections() == 0 then
-					remote.OnClientEvent:Connect(callback)
-				end
+				remote.OnClientEvent:Connect(callback)
 			end
 		end
 		return remote
 	end
 
-	remote = Instance.new("RemoteEvent")
-	remote.Name = name
-	remote.Parent = targetParent
+	local newRemote = Instance.new("RemoteEvent")
+	newRemote.Name = name
+	newRemote.Parent = targetParent
 
 	if callback then
 		if RunService:IsServer() then
-			remote.OnServerEvent:Connect(callback)
+			newRemote.OnServerEvent:Connect(callback)
 		else
-			remote.OnClientEvent:Connect(callback)
+			newRemote.OnClientEvent:Connect(callback)
 		end
 	end
 
-	return remote
+	return newRemote
 end
 
 -- Crée ou récupère un RemoteFunction
@@ -266,6 +267,22 @@ function Utility.GetDistance(pos1: Vector3, pos2: Vector3): number
 	return (pos1 - pos2).Magnitude
 end
 
+-- Compute the HipHeight of HumanoidRootPart
+function Utility.ComputeHipHeight(humanoid: Humanoid, root: BasePart, model: Model)
+	local rayOrigin = root.Position
+	local rayDirection = Vector3.new(0, -10, 0)
+
+	local raycastParams = RaycastParams.new()
+	raycastParams.FilterDescendantsInstances = { model }
+	raycastParams.FilterType = Enum.RaycastFilterType.Exclude
+
+	local result = workspace:Raycast(rayOrigin, rayDirection, raycastParams)
+	if result then
+		local distance = (root.Position.Y - result.Position.Y)
+		humanoid.HipHeight = distance
+	end
+end
+
 -- Génère un nombre aléatoire entre un minimum et un maximum
 function Utility.random(min: number?, max: number?)
 	local minNumber: number = min or 0
@@ -283,9 +300,50 @@ function Utility.GetPantsFromCharacter(character: Model): Pants?
 	return character:FindFirstChildWhichIsA("Pants")
 end
 
+-- Cut toutes les animations en cours et retourne le nombre d'animations arrêtées
+function Utility.StopAllAnimations(animator: Animator): number
+	local nb: number = 0
+	for _, animTrack in animator:GetPlayingAnimationTracks() do
+		animTrack:Stop()
+		nb += 1
+	end
+	return nb
+end
+
 -- Debug : affiche le type et la valeur d’un élément
 function Utility.DebugItem<T>(item: T)
 	print(`typeof: {typeof(item)} | item: {item}`)
+end
+
+-- Make visual effect for waypoint
+function Utility.VisualizeWaypoint(position: Vector3, index: number, previousWaypoint: any?)
+	if not RunService:IsStudio() then
+		return
+	end
+
+	local marker = Instance.new("Part")
+	marker.Size = Vector3.new(0.6, 0.6, 0.6)
+	marker.Shape = Enum.PartType.Ball
+	marker.Color = Color3.fromRGB(255, 0, 0)
+	marker.Anchored = true
+	marker.CanCollide = false
+	marker.CFrame = CFrame.new(position)
+	marker.Parent = workspace
+	Debris:AddItem(marker, 5)
+
+	if previousWaypoint and previousWaypoint.Position then
+		local prevPos = previousWaypoint.Position
+		local dist = (position - prevPos).Magnitude
+		local line = Instance.new("Part")
+		line.Anchored = true
+		line.CanCollide = false
+		line.Size = Vector3.new(0.2, 0.2, dist)
+		line.CFrame = CFrame.lookAt(prevPos, position) * CFrame.new(0, 0, -dist / 2)
+		line.Color = Color3.fromRGB(255, 200, 200)
+		line.Material = Enum.Material.Neon
+		line.Parent = workspace
+		Debris:AddItem(line, 5)
+	end
 end
 
 ---------------------------------------------------------------------
