@@ -180,6 +180,11 @@ local function characterLifeCycle()
 
 	local Humanoid = Character:WaitForChild("Humanoid") :: Humanoid
 	local RootPart = Character:WaitForChild("HumanoidRootPart") :: BasePart
+	for _, child in ipairs(RootPart:GetChildren()) do
+		if child:IsA("Sound") then
+			child:Destroy()
+		end
+	end
 
 	local rootConn = RootPart.ChildAdded:Connect(RootPartChildAdded)
 	table.insert(connections, rootConn) -- Ajouté à la table connections
