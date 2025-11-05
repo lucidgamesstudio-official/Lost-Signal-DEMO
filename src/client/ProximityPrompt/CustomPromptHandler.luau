@@ -133,6 +133,7 @@ Utility.Info("Custom Proximity Prompt System loaded (by Madrian622)", script.Nam
 
 local gui = Instance.new("ScreenGui")
 gui.Name = "CustomPrompts"
+gui.ResetOnSpawn = false
 gui.Parent = player:WaitForChild("PlayerGui")
 
 return CustomPromptHandler
