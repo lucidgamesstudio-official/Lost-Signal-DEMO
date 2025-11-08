@@ -114,8 +114,8 @@ function LoadingModule.Init(self: LoadingModuleType)
 	self.Screen.Enabled = true
 	self.Container.Visible = true
 	self.Screen.Parent = self.Player:WaitForChild("PlayerGui")
-	self.BarLoading.AnchorPoint = Vector2.new(1, .5)
-	self.BarLoading.Position = UDim2.fromScale(1, .5)
+	self.BarLoading.AnchorPoint = Vector2.new(1, 0.5)
+	self.BarLoading.Position = UDim2.fromScale(1, 0.5)
 	self.BarLoading.Size = UDim2.fromScale(1, 1)
 	fadeIn(self.Container, true)
 	for index, element in ipairs(ASSETS) do
