@@ -16,6 +16,7 @@ local Players = game:GetService("Players")
 -- Modules
 ---------------------------------------------------------------------
 
+local DialoguesApi = require(script.Apis.DialoguesApi)
 local LightingController = require(script.Lighting.LightingController)
 local PlayerManager = require(script.Player.PlayerManager)
 local InitObjects = require(script.Objects.InitObjects)
@@ -36,6 +37,20 @@ local playerDisconnect
 
 playerConnect = Players.PlayerAdded:Connect(function(player)
 	PlayerManager.addPlayer(player)
+	task.wait(5)
+	local data: DialoguesApi.DialoguesDict = {
+		lines = {
+			"<b>Test</b>, autre test. <s>test strike</s>",
+			"Player, test, ponctuation. Time",
+		},
+		title = "TitleTest",
+		speaker = "Me",
+	}
+	while true do
+		DialoguesApi.SendDialogue(player, data)
+		print("wow")
+		task.wait(10)
+	end
 end)
 
 playerDisconnect = Players.PlayerRemoving:Connect(function(player)
