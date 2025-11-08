@@ -128,7 +128,9 @@ export type DialogControllerType = {
 	show: boolean,
 	style: number,
 	canToggle: boolean,
+	isPrinting: boolean,
 	_print_lines_thread: thread?,
+	_dialogueQueue: { DialoguesDict },
 
 	-- Public Methods
 	load: () -> (),
@@ -167,57 +169,66 @@ function DialoguesController.load()
 	self.Button.Position = self.Content.Position
 
 	self.show = false
+	self.isPrinting = false
 	self.style = DialoguesStyles.Basic
 	self.canToggle = true
 	self._print_lines_thread = nil
+	self._dialogueQueue = {}
+
+	-- Add a dialogue in the queue
+	local function enqueueDialogue(data)
+		table.insert(self._dialogueQueue, data)
+		if not self.isPrinting then
+			task.spawn(function()
+				while #self._dialogueQueue > 0 do
+					self.isPrinting = true
+					local currentData = table.remove(self._dialogueQueue, 1)
+					local finishPrintEvent = self:Show(currentData)
+
+					-- Wait the end of the print
+					if finishPrintEvent then
+						finishPrintEvent.Event:Wait()
+					end
+
+					-- Wait to
+					task.wait(0.5)
+				end
+				self.isPrinting = false
+			end)
+		end
+	end
 
 	-- Connect RemoteEvent
-	SendDialoguesRemote.OnClientEvent:Connect(function(data)
-		self:Show(data)
+	SendDialoguesRemote.OnClientEvent:Connect(function(data: DialoguesDict)
+		enqueueDialogue(data)
 	end)
 
 	return self
 end
 
 -- Show dialogue
-function DialoguesController.Show(self: DialogControllerType, data: DialoguesDict)
-	if not data or typeof(data) ~= "table" then
-		Utility.Warn("Invalid dialogue data received", script.Name)
-		return
-	end
+function DialoguesController.Show(self: DialogControllerType, data: DialoguesDict): BindableEvent?
 	Utility.Info(`Show`, script.Name)
 	local titleText: string = data.speaker and `<b>{data.speaker}</b>: {data.title}` or `{data.title}`
-
 	self.Title.Text = titleText
 	self.Content.Text = ""
+
 	local bindableEvent: BindableEvent? = self:_toggle(self.show)
 	if not bindableEvent then
-		Utility.Warn(`[WARN] Fail to compute the toggle animation`, script.Name)
-		return
+		return nil
 	end
-	local activatedConn: RBXScriptConnection?
-	activatedConn = self.Button.Activated:Connect(function(a0: InputObject, a1: number)
-		Utility.Info(`ImageButton Activated`, script.Name)
-		if not self.show then
-			return
-		end
-		self:StartPrintContent(data.lines, true)
-		if activatedConn then
-			activatedConn:Disconnect()
-			activatedConn = nil
-		end
-	end)
-	bindableEvent.Event:Once(function(...: any)
-		local finishPrintEvent: BindableEvent = self:StartPrintContent(data.lines)
-		if activatedConn then
-			activatedConn:Disconnect()
-			activatedConn = nil
-		end
+
+	local finishDialogueEvent = Utility.CreateBindableEvent("FinishDialogue", script)
+	bindableEvent.Event:Once(function()
+		local finishPrintEvent = self:StartPrintContent(data.lines)
 		finishPrintEvent.Event:Once(function()
 			task.wait(1)
 			self:Close()
+			finishDialogueEvent:Fire()
 		end)
 	end)
+
+	return finishDialogueEvent
 end
 
 -- Close dialogue
