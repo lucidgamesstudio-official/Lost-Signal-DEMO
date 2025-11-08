@@ -54,10 +54,21 @@ end
 -- Crée un dossier s’il n’existe pas
 function Utility.CreateFolder(name: string, parent: Instance?)
 	local targetParent = parent or ReplicatedStorage
-	local folder = targetParent:FindFirstChild(name)
-	if folder and folder:IsA("Folder") then
-		return folder
+	local existing = targetParent:FindFirstChild(name)
+	if existing and existing:IsA("Folder") then
+		return existing
 	end
+
+	if RunService:IsClient() then
+		-- Attendre jusqu'à 5s que le serveur le crée
+		local replicated = targetParent:WaitForChild(name, 5)
+		if replicated and replicated:IsA("Folder") then
+			return replicated
+		end
+		-- Si toujours rien, log et créer en dernier recours
+		Utility.Warn(`[Utility] Création forcée du dossier '${name}' côté client`, script.Name)
+	end
+
 	local newFolder = Instance.new("Folder")
 	newFolder.Name = name
 	newFolder.Parent = targetParent
