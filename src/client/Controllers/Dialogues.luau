@@ -53,7 +53,6 @@ local function parseRichText(text: string): { { type: string, content: string, o
 			end
 		end
 
-		-- Add plain text before tag (if any)
 		if nearestStart > currentPos then
 			local plainText = string.sub(text, currentPos, nearestStart - 1)
 			if #plainText > 0 then
@@ -74,16 +73,6 @@ local function parseRichText(text: string): { { type: string, content: string, o
 			})
 			currentPos = nearestMatch.finish + 1
 		else
-			-- No more tags, add remaining text
-			if currentPos <= #text then
-				local remainingText = string.sub(text, currentPos)
-				if #remainingText > 0 then
-					table.insert(segments, {
-						type = "plain",
-						content = remainingText,
-					})
-				end
-			end
 			break
 		end
 	end
@@ -314,7 +303,6 @@ function DialoguesController.StartPrintContent(
 						task.wait(timeToWait)
 					end
 				elseif segment.type == "tagged" then
-					-- Display tagged text character by character with tags
 					local taggedContent = ""
 					for i = 1, #segment.content do
 						local letter = string.sub(segment.content, i, i)
@@ -324,8 +312,8 @@ function DialoguesController.StartPrintContent(
 						self.Content.Text = displayedText .. segment.openTag .. taggedContent .. segment.closeTag
 						task.wait(timeToWait)
 					end
-					-- Update displayed text to include full tagged content
-					displayedText = displayedText .. segment.openTag .. segment.content .. segment.closeTag
+					-- Une fois le tag terminé, on garde le texte complet dans displayedText
+					displayedText ..= segment.openTag .. segment.content .. segment.closeTag
 				end
 			end
 
