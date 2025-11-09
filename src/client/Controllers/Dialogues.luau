@@ -137,11 +137,11 @@ function DialoguesController.load()
 
 	local playerGui: PlayerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
 	self.Screen = playerGui:FindFirstChild("DialoguesGui")
-	self.Screen.Enabled = false
 	if not self.Screen then
 		Utility.Warn(`[WARN] No DialoguesGui found`, script.Name)
 		return
 	end
+	self.Screen.Enabled = false
 
 	self.Container = self.Screen:WaitForChild("Container") :: CanvasGroup
 	self.Bar = self.Container:WaitForChild("Bar") :: Frame
