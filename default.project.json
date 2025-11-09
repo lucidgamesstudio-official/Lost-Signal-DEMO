@@ -45,6 +45,7 @@
 
     "StarterPlayer": {
       "StarterPlayerScripts": {
+        "$ignoreUnknownInstances": true,
         "Client": {
           "$path": "src/client"
         }
