@@ -11,11 +11,13 @@
 ---------------------------------------------------------------------
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 ---------------------------------------------------------------------
 -- Modules
 ---------------------------------------------------------------------
 
+local DialoguesText = require(ReplicatedStorage.Shared.DialoguesText)
 local DialoguesApi = require(script.Apis.DialoguesApi)
 local LightingController = require(script.Lighting.LightingController)
 local PlayerManager = require(script.Player.PlayerManager)
@@ -38,14 +40,7 @@ local playerDisconnect
 playerConnect = Players.PlayerAdded:Connect(function(player)
 	PlayerManager.addPlayer(player)
 	task.wait(5)
-	local data: DialoguesApi.DialoguesDict = {
-		lines = {
-			"<b>Test</b>, autre test. <s>test strike</s>",
-			"Player, test, ponctuation. Time",
-		},
-		title = "TitleTest",
-		speaker = "Me",
-	}
+	local data: DialoguesApi.DialoguesDict = DialoguesText.fr.Test
 	while true do
 		DialoguesApi.SendDialogue(player, data)
 		print("wow")
