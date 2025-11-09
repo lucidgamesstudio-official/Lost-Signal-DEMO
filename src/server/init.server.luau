@@ -17,7 +17,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 -- Modules
 ---------------------------------------------------------------------
 
-local CharacterApi = require(script.Apis.CharacterApi)
 local DialoguesText = require(ReplicatedStorage.Shared.DialoguesText)
 local DialoguesApi = require(script.Apis.DialoguesApi)
 local LightingController = require(script.Lighting.LightingController)
@@ -42,15 +41,7 @@ playerConnect = Players.PlayerAdded:Connect(function(player)
 	PlayerManager.addPlayer(player)
 	task.wait(5)
 	local data: DialoguesApi.DialoguesDict = DialoguesText.fr.Test
-	local canMove: boolean = true
 	while true do
-		if canMove then
-			CharacterApi.DisablePlayerMovements(player)
-			canMove = false
-		else
-			CharacterApi.EnablePlayerMovements(player)
-			canMove = true
-		end
 		DialoguesApi.SendDialogue(player, data)
 		print("wow")
 		task.wait(10)
