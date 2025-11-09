@@ -16,6 +16,7 @@ local FootstepController = require(script.Player.FootstepController)
 local Utility = require(ReplicatedStorage.Shared.Utility)
 local Inputs = require(script.Player.Inputs)
 local InventoryModule = require(script.Player.Inventory)
+local CharacterController = require(script.Controllers.CharacterController)
 require(script.ProximityPrompt.CustomPromptHandler)
 
 -- Remote folder
@@ -66,3 +67,4 @@ Utility.CreateRemoteEvent("addConnections", REMOTE_FOLDER):FireServer({
 -- START INITIATE CLIENT (client side)
 FootstepController.Load()
 Dialogues.load()
+CharacterController.load()
