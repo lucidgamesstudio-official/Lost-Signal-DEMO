@@ -24,6 +24,7 @@ local RICH_TEXT_PATTERNS = {
 	"(<font%s+color%s*=%s*[\"']#?%w+[\"']>)(.-)(</font>)",
 	"(<font%s+size%s*=%s*[\"']?%d+[\"']?>)(.-)(</font>)",
 	"(<font%s+face%s*=%s*[\"'][^\"']+[\"']>)(.-)(</font>)",
+	"(<font[^>]+>)(.-)(</font>)", -- Security
 }
 
 -- Constantes
