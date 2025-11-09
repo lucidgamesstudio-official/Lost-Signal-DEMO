@@ -11,7 +11,7 @@ return {
 		Test = {
 			lines = {
 				"<b>Test</b>, autre test. <s>test strike</s>",
-				"Player, test, ponctuation. Time",
+				"<font color='rgb(255, 0, 0)'>Player</font>, <i>test</i>, ponctuation. Time",
 			},
 			title = "TitleTest",
 			speaker = "Me",
