@@ -26,9 +26,13 @@ local Controller = PlayerModule:GetControls()
 
 -- Folders
 local RemotesFolder: Folder = Utility.CreateFolder("RemoteEvents")
+local BindablesFolder: Folder = Utility.CreateFolder("BindableEvents")
 
 -- Remotes
 local CharacterRemote = Utility.CreateRemoteEvent("CharacterRemote", RemotesFolder)
+
+-- Bindables
+local CharacterBindable = Utility.CreateBindableEvent("CharacterBindable", BindablesFolder)
 
 -- ActionsEnum
 local ActionsEnum = {
@@ -40,15 +44,18 @@ local ActionsEnum = {
 	end,
 }
 
+local function executeAction(action: string)
+	local fn = ActionsEnum[action] -- Rust ref
+	if fn then
+		fn()
+	else
+		Utility.Warn(`Unknown action: {action}`, script.Name)
+	end
+end
+
 function CharacterController.load()
-	CharacterRemote.OnClientEvent:Connect(function(action: string)
-		local fn = ActionsEnum[action] -- Rust ref
-		if fn then
-			fn()
-		else
-			Utility.Warn(`Unknown action: {action}`, script.Name)
-		end
-	end)
+	CharacterRemote.OnClientEvent:Connect(executeAction)
+	CharacterBindable.Event:Connect(executeAction)
 end
 
 return CharacterController
