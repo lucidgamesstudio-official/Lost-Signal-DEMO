@@ -18,10 +18,20 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 ---------------------------------------------------------------------
 
 local DialoguesText = require(ReplicatedStorage.Shared.DialoguesText)
+local Utility = require(ReplicatedStorage.Shared.Utility)
 local DialoguesApi = require(script.Apis.DialoguesApi)
 local LightingController = require(script.Lighting.LightingController)
 local PlayerManager = require(script.Player.PlayerManager)
 local InitObjects = require(script.Objects.InitObjects)
+
+---------------------------------------------------------------------
+-- Create Folders
+---------------------------------------------------------------------
+
+Utility.CreateFolder("BindableEvents")
+Utility.CreateFolder("BindableFuncctions")
+Utility.CreateFolder("RemoteEvents")
+Utility.CreateFolder("RemoteFunctions")
 
 ---------------------------------------------------------------------
 -- Initialisation
