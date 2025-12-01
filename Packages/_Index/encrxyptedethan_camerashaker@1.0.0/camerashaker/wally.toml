@@ -1,0 +1,13 @@
+[package]
+name = "encrxyptedethan/camerashaker"
+description = "A upload of sleitnick's rbxcamerashaker to wally."
+realm = "shared"
+registry = "https://github.com/UpliftGames/wally-index"
+version = "1.0.0"
+exclude = [
+	"docs", ".moonwave", "test",
+	"CameraShake.rbxm", "CameraShake.rbxmx",
+	".gitignore", "rokit.toml",
+]
+
+[dependencies]
