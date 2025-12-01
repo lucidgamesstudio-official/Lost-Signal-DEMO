@@ -5,3 +5,5 @@ registry = "https://github.com/UpliftGames/wally-index"
 realm = "shared"
 
 [dependencies]
+camerashaker = "encrxyptedethan/camerashaker@1.0.0"
+boattween = "boatbomber/boattween@1.0.1"
