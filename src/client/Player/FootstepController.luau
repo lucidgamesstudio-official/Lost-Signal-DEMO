@@ -11,8 +11,8 @@ local Utility = require(ReplicatedStorage.Shared.Utility)
 
 -- Constantes
 local PLAYER_RUN_SPEED = 16
-local WALK_STEP_COOLDOWN = 0.45
-local RUN_STEP_COOLDOWN = 0.3
+local WALK_STEP_COOLDOWN = 0.3
+local RUN_STEP_COOLDOWN = 0.05
 
 -- Constantes pour la caméra
 local CAMERA_SWAY_MAGNITUDE_WALK_Y = 0.02 -- Amplitude verticale en marchant Default: 0.05
@@ -30,15 +30,49 @@ local cameraSwayTime = 0 -- Compteur de temps pour l'onde sinusoïdale de la cam
 local cameraRenderConn: RBXScriptConnection? = nil
 local NOISE_SEED = math.random() * 1000
 
-local soundMap = {
-	[Enum.Material.Grass] = "rbxassetid://7003103812",
-	[Enum.Material.Wood] = "rbxassetid://87921439933530",
-	[Enum.Material.Concrete] = "rbxassetid://5676547800",
-	[Enum.Material.Metal] = "rbxassetid://78580994772675",
-	[Enum.Material.Sand] = "rbxassetid://105793766638092",
-	[Enum.Material.Glass] = "rbxassetid://3437778169",
-}
+-- Constantes pour les sons
 local DEFAULT_SOUND = "rbxassetid://86112804976337"
+local DEFAULT_VOLUME = 0.75
+local DEFAULT_SPEED = 1
+
+export type SoundMap = {
+	Id: string,
+	Volume: number,
+	Speed: number,
+}
+
+local soundMap: SoundMap = {
+	[Enum.Material.Grass] = {
+		Id = "rbxassetid://7003103812",
+		Volume = DEFAULT_VOLUME,
+		Speed = DEFAULT_SPEED,
+	},
+	[Enum.Material.Wood] = {
+		Id = "rbxassetid://87921439933530",
+		Volume = DEFAULT_VOLUME,
+		Speed = DEFAULT_SPEED,
+	},
+	[Enum.Material.Concrete] = {
+		Id = "rbxassetid://81623756670923",
+		Volume = DEFAULT_VOLUME,
+		Speed = 2,
+	},
+	[Enum.Material.Metal] = {
+		Id = "rbxassetid://78580994772675",
+		Volume = DEFAULT_VOLUME,
+		Speed = DEFAULT_SPEED,
+	},
+	[Enum.Material.Sand] = {
+		Id = "rbxassetid://105793766638092",
+		Volume = DEFAULT_VOLUME,
+		Speed = DEFAULT_SPEED,
+	},
+	[Enum.Material.Glass] = {
+		Id = "rbxassetid://3437778169",
+		Volume = DEFAULT_VOLUME,
+		Speed = DEFAULT_SPEED,
+	},
+}
 
 -- Variables de scope du Module
 local Player: Player = Players.LocalPlayer
@@ -135,7 +169,7 @@ end
 local function startFootstepLogic(Humanoid: Humanoid, RootPart: BasePart): RBXScriptConnection
 	local footstepSound = Instance.new("Sound")
 	footstepSound.Name = "FootstepSound"
-	footstepSound.Volume = 0.25
+	footstepSound.Volume = 1
 	footstepSound.Parent = RootPart
 
 	local lastStepTime = 0
@@ -153,14 +187,21 @@ local function startFootstepLogic(Humanoid: Humanoid, RootPart: BasePart): RBXSc
 		if moveDirectionMagnitude > 0 and floorMaterial ~= Enum.Material.Air then
 			local currentCooldown = Humanoid.WalkSpeed == PLAYER_RUN_SPEED and RUN_STEP_COOLDOWN or WALK_STEP_COOLDOWN
 
-			if currentTime - lastStepTime > currentCooldown then
-				local soundId = soundMap[floorMaterial] or DEFAULT_SOUND
+			if currentTime - lastStepTime > currentCooldown and not footstepSound.IsPlaying then
+				local soundId = soundMap[floorMaterial] and soundMap[floorMaterial].Id or DEFAULT_SOUND
+				local volume: number = soundMap[floorMaterial] and soundMap[floorMaterial].Volume or DEFAULT_VOLUME
+				local speed: number = soundMap[floorMaterial] and soundMap[floorMaterial].Speed or DEFAULT_SPEED
 
 				if footstepSound.SoundId ~= soundId then
 					footstepSound.SoundId = soundId
 				end
-				footstepSound.PlaybackSpeed = math.random(90, 110) / 100
+				if volume then
+					footstepSound.Volume = volume
+				end
 				footstepSound:Play()
+				if speed then
+					footstepSound.PlaybackSpeed = speed + (Humanoid.WalkSpeed >= PLAYER_RUN_SPEED and .5 or 0) --* math.random(90, 110) / 100
+				end
 
 				lastStepTime = currentTime
 			end
